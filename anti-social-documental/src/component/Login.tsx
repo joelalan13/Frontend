@@ -15,10 +15,7 @@ const Login = () => {
         <h1 className="login__title">
           Bienvenid@<span>.</span>
         </h1>
-
-        <p className="login__description">
-          Ingresá con tu <strong>nickName</strong> para continuar.
-        </p>
+        
         <LoginForm />       
 
       </section>

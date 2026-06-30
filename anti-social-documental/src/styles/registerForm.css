@@ -1,0 +1,239 @@
+.registro {
+  min-height: calc(100vh - 64px);
+  background: #050a06;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 110px;
+}
+
+.registro__container {
+  width: 100%;
+  max-width: 460px;
+}
+
+.registro__info {
+  margin-bottom: 2rem;
+}
+
+.registro__label {
+  color: #00d166;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+}
+
+
+.registro__title {
+  margin: 1rem 0;
+  font-size: 3.2rem;
+  line-height: 0.95;
+}
+
+.registro__title span {
+  color: #00d166;
+}
+
+.registro__description {
+  color: #7f9285;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.registro__description strong {
+  color: #f4fff5;
+}
+
+.registro__endpoints {
+  border-left: 2px solid #00d166;
+  padding-left: 1.3rem;
+  margin-bottom: 2rem;
+}
+
+.registro__endpoint {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1.2rem;
+}
+
+.registro__method {
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 4px 7px;
+  color: #031006;
+}
+
+.registro__method--post {
+  background: #00d166;
+}
+
+.registro__method--get {
+  background: #18b9db;
+}
+
+.registro__endpoint strong {
+  display: block;
+  color: #f4fff5;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+
+.registro__endpoint p {
+  margin: 0;
+  color: #6f8275;
+  font-size: 0.78rem;
+}
+
+.registro__flow {
+  border: 1px solid #1d3925;
+  background: #0b120d;
+  padding: 1.2rem;
+}
+
+.registro__flow h3 {
+  margin: 0 0 1rem;
+  color: #8aa18f;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+}
+
+.registro__flow ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.registro__flow li {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: #6f8275;
+  font-size: 0.78rem;
+  margin-bottom: 0.7rem;
+}
+
+.registro__flow li span {
+  background: #00d166;
+  color: #031006;
+  font-size: 0.7rem;
+  font-weight: 800;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+}
+
+.registro__form-card {
+  border: 1px solid #1d3925;
+  background: #0b120d;
+  padding: 2rem;
+}
+
+.registro-form label {
+  display: block;
+  color: #8aa18f;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 1.15rem;
+}
+
+.registro-form__input {
+  margin-top: 0.55rem;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 0.9rem;
+  border: 1px solid #1c3a25;
+  background: #0f1711;
+  color: #7f9285;
+}
+
+.registro-form__input input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #f4fff5;
+  font-size: 0.95rem;
+}
+
+.registro-form__input input::placeholder {
+  color: #6f8275;
+}
+
+.registro-form__error {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(255, 61, 61, 0.15);
+  border: 1px solid #9f3434;
+  color: #ff5b5b;
+  padding: 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+}
+
+.registro-form__button {
+  width: 100%;
+  height: 50px;
+  background: #00d166;
+  border: none;
+  color: #031006;
+  cursor: pointer;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.registro-form__button:hover {
+  background: #00c45f;
+}
+
+.registro-form__login {
+  text-align: center;
+  color: #7f9285;
+  margin-top: 1.5rem;
+  margin-bottom: 0;
+  font-size: 0.9rem;
+}
+
+.registro-form__login a {
+  color: #00d166;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.registro-form__input input:-webkit-autofill,
+.registro-form__input input:-webkit-autofill:hover,
+.registro-form__input input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f4fff5;
+  -webkit-box-shadow: 0 0 0 1000px #0f1711 inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+@media (max-width: 850px) {
+  .registro {
+    grid-template-columns: 1fr;
+    padding: 60px 24px;
+    gap: 40px;
+  }
+
+  .registro__info,
+  .registro__form-card {
+    max-width: 460px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .registro__title {
+    font-size: 2.8rem;
+  }
+}
