@@ -70,11 +70,16 @@ const FeedPost = ({ dataPost }) => {
 
       {/* Imágenes */}
       {dataPost.images && dataPost.images.length > 0 && (
-        <div className="feedpost__images">
+        <div
+          className={`feedpost__images ${dataPost.images.length === 1
+              ? "feedpost__images--single"
+              : "feedpost__images--multiple"
+            }`}
+        >
           {dataPost.images.map((img, idx) => (
             <img
               key={idx}
-              src={img.url}
+              src={dataPost.url}
               alt="Post"
               className="feedpost__image"
             />
@@ -86,7 +91,7 @@ const FeedPost = ({ dataPost }) => {
       <div className="feedpost__footer">
         <div className="feedpost__stats">
           <span className="feedpost__stat">
-            <span className="feedpost__stat-icon">🟢</span>
+            <span className="feedpost__stat-icon"> <ThumbsUp size={14} /></span>
             {likes}
           </span>
           <span className="feedpost__stat">

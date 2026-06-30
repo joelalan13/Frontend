@@ -4,15 +4,15 @@ const listaPost = [
         idPost:1,
         tags:[{
                 idTag:1,
-                nombre:"tag1",
+                nombre:"PERSISTENCIA",
                 idPost:1
             },
             {
                 idTag:2,
-                nombre:"tag2",
+                nombre:"INTERFACES",
                 idPost:1
             }],
-        nombre:"post",
+        nombre:"Esteban Quito",
         url:"https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=500&fit=crop&auto=format",
         info:"publicacion de prueba",
         likes:10,
