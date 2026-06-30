@@ -1,4 +1,5 @@
-import {Routes, Route} from "react-router"
+import { Routes, Route, useNavigate, useLocation } from "react-router"
+import { useState, useEffect } from "react"
 
 import Header from "./component/Header"
 import Footer from "./component/Footer"
@@ -9,12 +10,51 @@ import NewPost from "./pages/NewPost"
 import PostDetails from "./pages/PostDetails"
 
 function App() {
+  const [screen, setScreen] = useState("home")
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  // Sincronizar screen con la ruta actual
+  useEffect(() => {
+    const path = location.pathname
+    if (path === "/" || path === "/inicio") setScreen("home")
+    else if (path === "/login") setScreen("login")
+    else if (path === "/register") setScreen("register")
+    else if (path === "/perfil") setScreen("profile")
+    else if (path === "/newPost") setScreen("create")
+    else setScreen("post")
+  }, [location.pathname])
+
+  const handleNav = (s) => {
+    setScreen(s)
+    switch (s) {
+      case "home":
+        navigate("/")
+        break
+      case "login":
+        navigate("/login")
+        break
+      case "register":
+        navigate("/register")
+        break
+      case "profile":
+        navigate("/perfil")
+        break
+      case "create":
+        navigate("/newPost")
+        break
+      default:
+        navigate("/")
+    }
+  }
+
   return(
     <div>
-        <Header/>
+        <Header screen={screen} onNav={handleNav} />
         <Routes>
             <Route path="/" element={<Inicio/>}/>
             <Route path="/login" element={<Login/>}/>
+            <Route path="/register" element={<Login/>}/>
             <Route path="/perfil" element={<Perfil/>} />
             <Route path="/newPost" element={<NewPost/>}/>
             <Route path="/postDetails/:idPost" element={<PostDetails/>}/>
