@@ -55,7 +55,7 @@ const FeedPost = ({ dataPost }) => {
 
       {/* Descripción */}
       <div className="feedpost__content">
-        <p className="feedpost__description">{dataPost.descripcion}</p>
+        <p className="feedpost__description">{dataPost.info}</p>
       </div>
 
       {/* Tags */}
@@ -80,7 +80,7 @@ const FeedPost = ({ dataPost }) => {
           {dataPost.images.map((img, idx) => (
             <img
               key={idx}
-              src={dataPost.url}
+              src={img}
               alt="Post"
               className="feedpost__image"
             />

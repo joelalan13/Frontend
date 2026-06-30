@@ -1,16 +1,13 @@
-{/*Aca donde te lleva "ver mas" que aparece en los posts del feed o inicio */}
-{/*Aca necesitaremos de Post? */}
-import { useParams } from "react-router"
-import { Container, Row, Col} from "react-bootstrap";
-
+import { useParams } from "react-router-dom"
+import { Container, Row, Col} from "react-bootstrap"
 
 import listaPost from "../data/Post"
-import FeedPost from "../component/FeedPost";
-import Comment from "../component/Comment";
-
+import FeedPost from "../component/FeedPost"
+import Comment from "../component/Comment"
+import CommentForm from "../component/CommentForm"
 
 const PostDetails = () =>{
-    const {idPost} = useParams();
+    const {idPost} = useParams()
     const postEncontrado = listaPost.find((post) => post.idPost === Number(idPost))
     
     if (!postEncontrado) {
@@ -22,17 +19,33 @@ const PostDetails = () =>{
                     </Col>
                 </Row>
             </Container>
-        );
+        )
     }
+
     return(
         <Container>
             <Row>
                 <FeedPost dataPost={postEncontrado}/>                
             </Row>
-            <Row style={{background:"gray"}}>
-                <Comment dataComment={postEncontrado.comentarios}/>
+
+            <Row >
+                <Col>
+                    
+                    {postEncontrado.comentarios && postEncontrado.comentarios.length > 0 ? (
+                        postEncontrado.comentarios.map((comentario) => (
+                            <Comment key={comentario.idComentario} comment={comentario}/>
+                        ))
+                    ) : (
+                        <p>No hay comentarios aún</p>
+                    )}
+                </Col>
             </Row>
 
+            <Row style={{marginTop: "20px"}}>
+                <Col>
+                    <CommentForm />
+                </Col>
+            </Row>
         </Container>
     )
 }
