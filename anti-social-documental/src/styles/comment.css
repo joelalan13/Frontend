@@ -1,0 +1,70 @@
+.comment {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+
+  padding: 0.9rem 1rem;
+
+  border-bottom: 1px solid #1c3a25;
+
+  background: #0b120d;
+}
+
+.comment:last-child {
+  border-bottom: none;
+}
+
+.comment__avatar {
+  width: 32px;
+  height: 32px;
+
+  background: #00d166;
+
+  color: #031006;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-size: 0.75rem;
+  font-weight: 800;
+
+  flex-shrink: 0;
+}
+
+.comment__body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.comment__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 0.25rem;
+}
+
+.comment__user {
+  color: #f4fff5;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.comment__time {
+    color: #7fa989;
+    font-size: 0.75rem;
+    
+    margin-left: 10px;
+}
+
+.comment__text {
+    margin: 0.3rem 0 0;
+    text-align: left;
+    width: 100%;
+    color: #f4fff5;
+    font-size: 0.9rem;
+    line-height: 1.45;
+}

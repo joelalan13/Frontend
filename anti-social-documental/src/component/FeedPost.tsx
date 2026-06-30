@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { MoreVertical, Bookmark, ThumbsUp, MessageCircle } from "lucide-react"
 import { Link } from "react-router-dom"
+// @ts-ignore: allow importing CSS without type declarations
 import "../styles/feedpost.css"
 
 const FeedPost = ({ dataPost }) => {

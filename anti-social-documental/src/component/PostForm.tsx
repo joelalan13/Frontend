@@ -62,10 +62,7 @@ const PostForm = () => {
 
   return (
     <main className="post-form-page">
-      <section className="post-form-page__header">
-        <span className="post-form-page__label">
-          VISTA PROTEGIDA · SOLO LOGUEADOS
-        </span>
+      <section className="post-form-page__header"> 
 
         <h1 className="post-form-page__title">
           Nueva <span>publicación.</span>
