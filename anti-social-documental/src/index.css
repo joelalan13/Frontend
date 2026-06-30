@@ -109,3 +109,34 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+/*Volver responsive la image de card de Post*/
+.card-image-post{
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+}
+@media (max-width: 768px){
+    .card-image-post{
+        height: 220px;
+    }
+}
+@media (max-width: 576px){
+    .card-image-post{
+      height: 180px;
+    }
+}
+
+.btn-comment-post{
+  object-fit: cover;
+}
+@media (max-width: 768px){
+    .btn-comment-post{
+        height: 220px;
+    }
+}
+@media (max-width: 576px){
+    .btn-comment-post{
+      height: 100%;
+    }
+}

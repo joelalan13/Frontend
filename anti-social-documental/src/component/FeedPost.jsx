@@ -14,8 +14,11 @@ const FeedPost = ({dataPost}) =>{
     {/*y cuando haga OnClick suma 1 o resta en caso contrario de que haya dado Click  */}
     
     const handleClick = () => {
-        !yaClickeado ? setLikes(prev => prev + 1): setLikes(prev => prev - 1);
-        setYaClickeado(!yaClickeado);
+        setYaClickeado(prev => !prev);
+
+        setLikes(prev =>
+            yaClickeado ? prev - 1 : prev + 1
+        );
     };
 
     const cantComentarios = dataPost.comentarios?.length || 0
@@ -25,7 +28,7 @@ const FeedPost = ({dataPost}) =>{
             {/*Cabecera del post que tendra el userName*/}
             
             <Card.Header>
-                {dataPost.nombre}
+                {dataPost.idUser}
             </Card.Header>
             <Card.Body>
                 {/*Tags del post */}
@@ -36,27 +39,23 @@ const FeedPost = ({dataPost}) =>{
                     ))}
                 </div>
             
-                <Card.Img variant="top" src={dataPost.url} className="w-100"/>
+                <Card.Img variant="top" src={dataPost.url} className="card-image-post"/>
                 {/*Descripcion de Post*/}
                 <Card.Text className="mt-3">
                     {dataPost.info}
                 </Card.Text>
                 
                 {/*Botones*/}
-
-                <Row className="mt-3">
-                    <Col xs={4} onClick={handleClick} style={{backgroundColor:"gray"}}>
+                    <Button onClick={() => handleClick()}>
                          Me gustas {likes}
-                    </Col>
-                    <Col xs={4} as={NavLink} to={`/postDetails/${dataPost.idPost}`}>
+                    </Button>
+                    <Button as={NavLink} to={`/postDetails/${dataPost.idPost}`}>
                         {/*Comentarios lleva al Post principal como lo hace Ver mas? */}
                         Comentarios
-                    </Col>
-                    <Col xs={4} style={{backgroundColor:"gray"}} as={NavLink} to={`/postDetails/${dataPost.idPost}`}>
-                            Ver Mas
-                    </Col>
-                </Row>
-
+                    </Button>
+                    <Button style={{backgroundColor:"gray"}} as={NavLink} to={`/postDetails/${dataPost.idPost}`}>
+                            Ver Mas...
+                    </Button>
             </Card.Body>
         </Card>
     )

@@ -5,31 +5,29 @@ import {NavLink, Link} from "react-router-dom"
 
 const Header = () =>{
     return (
-        <Navbar bg="light" expand="lg">
-            <Container >
-                
-                <Navbar.Brand>
+        <Navbar expand="lg" style={{background:"gray"}}>
+                <Navbar.Brand as={NavLink} to="/">
                     <span className="actual-text">&nbsp;NameLog&nbsp;</span>
                 </Navbar.Brand>
-                <Navbar.Collapse>
+                <Navbar.Toggle/>
+                    <Navbar.Collapse>
 
-                {/*Links que llevaran a las distintas paginas */}
-                    <Nav className="ms-auto">
-                        <Nav.Link as={NavLink} to="/">
-                            Inicio
-                        </Nav.Link>
-                        <Nav.Link as={NavLink} to="/perfil">
-                            Perfil
-                        </Nav.Link>
-                        <Nav.Link as={NavLink} to="/newPost">
-                            Crear Post
-                        </Nav.Link>
-                        <Nav.Link>
-                            Cerrar Sesion
-                        </Nav.Link>
-                    </Nav>
-                </Navbar.Collapse>
-            </Container>
+                        {/*Links que llevaran a las distintas paginas */}
+                        <Nav className="ms-auto">
+                            <Nav.Link as={NavLink} to="/">
+                                Inicio
+                            </Nav.Link>
+                            <Nav.Link as={NavLink} to="/perfil">
+                                Perfil
+                            </Nav.Link>
+                            <Nav.Link as={NavLink} to="/newPost">
+                                Crear Post
+                            </Nav.Link>
+                            <Nav.Link>
+                                Cerrar Sesion
+                            </Nav.Link>
+                        </Nav>
+                    </Navbar.Collapse>
         </Navbar>
     )
 }
