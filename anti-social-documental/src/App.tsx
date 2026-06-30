@@ -10,8 +10,10 @@ import Register from "./pages/Register"
 import NewPost from "./pages/NewPost"
 import PostDetails from "./pages/PostDetails"
 
+type Screen = "home" | "login" | "register" | "profile" | "create" | "post"
+
 function App() {
-  const [screen, setScreen] = useState("home")
+  const [screen, setScreen] = useState<Screen>("home")
   const navigate = useNavigate()
   const location = useLocation()
 

@@ -1,10 +1,8 @@
-{/*Componente necesario para crear un new Post?*/}
+import PostForm from "../component/PostForm"
 
 const NewPost = () =>{
     return(
-        <div>
-
-        </div>
+        <PostForm></PostForm>
     )
 }
 

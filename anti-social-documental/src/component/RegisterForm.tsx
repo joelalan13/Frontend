@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { User, Lock, Eye, ArrowRight, AlertCircle } from "lucide-react";
+// @ts-ignore: allow importing CSS without type declarations
 import "../styles/registerForm.css";
 
 const RegisterForm = () => {
