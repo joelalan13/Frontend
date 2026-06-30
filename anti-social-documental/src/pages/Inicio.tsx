@@ -1,6 +1,6 @@
 import { useState } from "react"
-import { Row, Col, Container, Card} from "react-bootstrap"
-import {NavLink, Link} from "react-router-dom"
+import { Row, Col, Container} from "react-bootstrap"
+
 
 import ButtonScroll from "../component/ButtonScroll"
 import FeedPost from "../component/FeedPost"
