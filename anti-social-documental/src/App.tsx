@@ -28,7 +28,7 @@ function App() {
     else setScreen("post")
   }, [location.pathname])
 
-  const handleNav = (s) => {
+  const handleNav = (s: Screen) => {
     setScreen(s)
     switch (s) {
       case "home":
@@ -62,6 +62,8 @@ function App() {
             <Route path="/newPost" element={<NewPost/>}/>
             <Route path="/postDetails/:idPost" element={<PostDetails/>}/>
         </Routes>
+
+        <Footer/>
     </div>
   )
 }

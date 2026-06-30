@@ -1,4 +1,5 @@
 import { useState } from "react"
+// @ts-ignore
 import "../styles/buttonscroll.css"
 
 const ButtonScroll = () => {
