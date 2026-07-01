@@ -1,21 +1,40 @@
 import { useState } from "react";
 import { User, Lock, Eye, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import api from "../api";
 // @ts-ignore: allow importing CSS without type declarations
 import "../styles/loginForm.css"
 
 const LoginForm = () => {
+    const [nickname, setNickname] = useState("");
+    const [password, setPassword] = useState("");
+    const navigate = useNavigate();
 
-    const [nickname,setNickname]=useState("");
-
-    const [password,setPassword]=useState("");
-
-    const handleSubmit=(e:React.FormEvent)=>{
-
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        console.log("¡Click detectado! Nickname:", nickname, "Password:", password);
+        try {
+            const response = await api.get('/usuarios'); // Obtiene la lista
+            console.log("Respuesta de la API:", response.data);
+            const usuarios = response.data;
+            const usuarioEncontrado = usuarios.find((u: any) => 
+            u.nickName.toLowerCase() === nickname.toLowerCase()
+        );
 
-        console.log(nickname,password);
+            console.log("Usuario encontrado:", usuarioEncontrado);
 
-    }
+            if (usuarioEncontrado && password === "123456") {
+                localStorage.setItem('usuario', JSON.stringify(usuarioEncontrado));
+                console.log("Login exitoso, redirigiendo...");
+                navigate('/perfil');
+            } else {
+                alert("Credenciales incorrectas o usuario no encontrado");
+            }
+        } catch (error) {
+            console.error("Error al conectar", error);
+            alert("Error de conexión con el servidor");
+        }
+    };
 
     return(
 

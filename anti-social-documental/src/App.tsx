@@ -55,9 +55,17 @@ function App() {
 
   return (
     <div>
-      
+        <Header screen={screen} onNav={handleNav} />
+        <Routes>
+            <Route path="/" element={<Inicio/>}/>
+            <Route path="/login" element={<Login/>}/>
+            <Route path="/register" element={<Register/>}/>
+            <Route path="/perfil" element={<Perfil/>} />
+            <Route path="/newPost" element={<NewPost/>}/>
+            <Route path="/postDetails/:idPost" element={<PostDetails/>}/>
+        </Routes>
     </div>
-  );
+  )
 }
 
 export default App

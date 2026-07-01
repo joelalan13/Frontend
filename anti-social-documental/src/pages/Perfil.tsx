@@ -11,37 +11,35 @@ const Perfil = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // 1. Verificar si el usuario está logueado
-        const storedUser = localStorage.getItem('user');
+        const storedUser = localStorage.getItem('usuario');
         if (!storedUser) {
-            navigate('/login');
+            navigate('/login'); // Si no hay sesión, manda al login
             return;
         }
 
-        const userData = JSON.parse(storedUser);
-        if (!userData) {
-            navigate('/login');
-            return;
-        }
-        setUser(userData);
+        setUser(JSON.parse(storedUser));
+    }, [navigate]);
 
-        // 2. Consultar publicaciones por userId
+    useEffect(() => {
+        if (!user) return;
+
         const fetchPosts = async () => {
+            setLoading(true);
             try {
-                const response = await axios.get(`http://localhost:8080/posts?userId=${userData.id}`);
+                const response = await axios.get(`http://localhost:8080/posts?userId=${user.id}`);
                 setPosts(response.data);
             } catch (err) {
-                console.error("Error al cargar posts", err);
+                console.error('Error al cargar posts', err);
             } finally {
                 setLoading(false);
             }
         };
 
         fetchPosts();
-    }, [navigate]);
+    }, [user]);
 
     const handleLogout = () => {
-        localStorage.removeItem('user');
+        localStorage.removeItem('usuario');
         navigate('/login');
     };
 
@@ -51,9 +49,6 @@ const Perfil = () => {
         <Container className="mt-4">
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h1>Perfil de {user?.nickName}</h1>
-                <Button variant="danger" onClick={handleLogout}>
-                    <LogOut size={18} className="me-2" /> Logout
-                </Button>
             </div>
 
             <h3 className="mb-3">Mis Publicaciones</h3>
