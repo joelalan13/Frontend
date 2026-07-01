@@ -1,59 +1,44 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Container, Row, Col, Card, Button, Spinner } from 'react-bootstrap';
 import { Eye } from 'lucide-react';
 import postServices from '../services/postServices';
 import usuarioServices from '../services/usuarioServices';
 import type { Post, User } from '../types';
 
-const Perfil = () => {
+const PerfilUsuario = () => {
+    const { userId } = useParams<{ userId: string }>();
     const [user, setUser] = useState<User | null>(null);
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('usuario');
-        if (!storedUser) {
-            navigate('/login');
+        if (!userId) {
+            navigate('/');
             return;
         }
 
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
-
-        // Cargar datos completos del usuario
         const fetchUserData = async () => {
-            try {
-                const userData = await usuarioServices.getUsuarioById(parsedUser._id || parsedUser.idUser);
-                setUser(userData);
-            } catch (err) {
-                console.error('Error al cargar datos del usuario:', err);
-            }
-        };
-
-        fetchUserData();
-    }, [navigate]);
-
-    useEffect(() => {
-        if (!user) return;
-
-        const fetchUserPosts = async () => {
             setLoading(true);
             try {
+                // Cargar datos del usuario
+                const userData = await usuarioServices.getUsuarioById(userId);
+                setUser(userData);
+
+                // Cargar posts del usuario
                 const allPosts = await postServices.getPosts();
-                // Filtrar posts del usuario actual
-                const userPosts = allPosts.filter((post) => post.idUser === user._id || post.idUser === user.idUser);
+                const userPosts = allPosts.filter((post) => post.idUser === userId);
                 setPosts(userPosts);
             } catch (err) {
-                console.error('Error al cargar posts:', err);
+                console.error('Error al cargar perfil:', err);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchUserPosts();
-    }, [user]);
+        fetchUserData();
+    }, [userId, navigate]);
 
     if (loading) return <Spinner animation="border" className="mt-5" />;
     if (!user) return <Container><p>Usuario no encontrado</p></Container>;
@@ -65,7 +50,7 @@ const Perfil = () => {
                 <p className="text-muted">@{user.nickName}</p>
             </div>
 
-            <h3 className="mb-3">Mis Publicaciones ({posts.length})</h3>
+            <h3 className="mb-3">Publicaciones ({posts.length})</h3>
             {posts.length > 0 ? (
                 <Row>
                     {posts.map((post) => (
@@ -88,10 +73,10 @@ const Perfil = () => {
                     ))}
                 </Row>
             ) : (
-                <p>No tienes publicaciones aún</p>
+                <p>Este usuario no tiene publicaciones aún</p>
             )}
         </Container>
     );
 };
 
-export default Perfil;
+export default PerfilUsuario;

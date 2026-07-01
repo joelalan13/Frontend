@@ -1,22 +1,40 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Image, Send, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import postServices from "../services/postServices";
+import tagsServices from "../services/tagsServices";
+import postImageServices from "../services/postImageServices";
+import type { Tag } from "../types";
 // @ts-ignore: allow importing CSS without type declarations
 import "../styles/postForm.css";
-
-type Tag = {
-  idTag: number;
-  nombre: string;
-};
-
-const tagsMock: Tag[] = [
- //ACA IRIA EL GET DE TODOS LOS TAGS QUE EXISTEN
-];
 
 const PostForm = () => {
   const [descripcion, setDescripcion] = useState("");
   const [imageUrls, setImageUrls] = useState<string[]>([""]);
-  const [selectedTags, setSelectedTags] = useState<number[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [tagsLoading, setTagsLoading] = useState(true);
+  const navigate = useNavigate();
+
+  // Cargar tags desde la API
+  useEffect(() => {
+    const fetchTags = async () => {
+      setTagsLoading(true);
+      try {
+        const response = await tagsServices.getAllTags(1, 50);
+        setTags(response.data);
+      } catch (err) {
+        console.error("Error al cargar tags:", err);
+        setError("Error al cargar las etiquetas");
+      } finally {
+        setTagsLoading(false);
+      }
+    };
+
+    fetchTags();
+  }, []);
 
   const handleAddUrl = () => {
     if (imageUrls.length >= 10) return;
@@ -33,15 +51,15 @@ const PostForm = () => {
     setImageUrls(nuevasUrls);
   };
 
-  const handleSelectTag = (idTag: number) => {
-    if (selectedTags.includes(idTag)) {
-      setSelectedTags(selectedTags.filter((id) => id !== idTag));
+  const handleSelectTag = (tagName: string) => {
+    if (selectedTags.includes(tagName)) {
+      setSelectedTags(selectedTags.filter((tag) => tag !== tagName));
     } else {
-      setSelectedTags([...selectedTags, idTag]);
+      setSelectedTags([...selectedTags, tagName]);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!descripcion.trim()) {
@@ -50,20 +68,62 @@ const PostForm = () => {
     }
 
     setError("");
+    setLoading(true);
 
-    const nuevoPost = {
-      descripcion,
-      imageUrls: imageUrls.filter((url) => url.trim() !== ""),
-      tags: selectedTags,
-    };
+    try {
+      const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
+      
+      // 1. Crear el post
+      const nuevoPost = await postServices.postPost({
+        idUser: usuario._id,
+        descripcion,
+      });
 
-    console.log(nuevoPost);
+      const postId = nuevoPost.idPost;
+
+      // 2. Agregar imágenes si existen
+      const urlsValidas = imageUrls.filter((url) => url.trim() !== "");
+      if (urlsValidas.length > 0) {
+        try {
+          await postImageServices.postImage(
+            { urlImages: urlsValidas },
+            postId
+          );
+          console.log("Imágenes agregadas:", urlsValidas);
+        } catch (imgErr) {
+          console.error("Error al agregar imágenes:", imgErr);
+        }
+      }
+
+      // 3. Agregar tags si existen (convertir a mayúscula)
+      if (selectedTags.length > 0) {
+        for (const tagName of selectedTags) {
+          try {
+            const tagMayuscula = tagName.toUpperCase();
+            await tagsServices.addTagToPost(postId, tagMayuscula);
+            console.log("Tag agregado:", tagMayuscula);
+          } catch (tagErr) {
+            console.error(`Error al agregar tag ${tagName}:`, tagErr);
+          }
+        }
+      }
+
+      console.log("Post creado:", nuevoPost);
+      alert("¡Publicación creada con éxito!");
+      navigate("/");
+    } catch (err: any) {
+      console.error("Error al crear post:", err);
+      setError("Error al crear la publicación");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (tagsLoading) return <main className="post-form-page"><p>Cargando etiquetas...</p></main>;
 
   return (
     <main className="post-form-page">
-      <section className="post-form-page__header"> 
-
+      <section className="post-form-page__header">
         <h1 className="post-form-page__title">
           Nueva <span>publicación.</span>
         </h1>
@@ -78,6 +138,7 @@ const PostForm = () => {
               placeholder="¿Qué querés compartir con la comunidad?"
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
+              disabled={loading}
             />
           </label>
 
@@ -95,6 +156,7 @@ const PostForm = () => {
                     placeholder="https://ejemplo.com/foto.jpg"
                     value={url}
                     onChange={(e) => handleUrlChange(index, e.target.value)}
+                    disabled={loading}
                   />
                 </div>
 
@@ -103,6 +165,7 @@ const PostForm = () => {
                     type="button"
                     className="post-form__remove-url"
                     onClick={() => handleRemoveUrl(index)}
+                    disabled={loading}
                   >
                     <X size={16} />
                   </button>
@@ -115,6 +178,7 @@ const PostForm = () => {
                 type="button"
                 className="post-form__add-url"
                 onClick={handleAddUrl}
+                disabled={loading}
               >
                 + Agregar otra URL
               </button>
@@ -123,8 +187,12 @@ const PostForm = () => {
 
           {error && <p className="post-form__error">{error}</p>}
 
-          <button className="post-form__submit" type="submit">
-            PUBLICAR
+          <button 
+            className="post-form__submit" 
+            type="submit"
+            disabled={loading}
+          >
+            {loading ? "PUBLICANDO..." : "PUBLICAR"}
             <Send size={17} />
           </button>
         </section>
@@ -133,20 +201,25 @@ const PostForm = () => {
           <h3>ETIQUETAS</h3>
 
           <div className="post-form__tags">
-            {tagsMock.map((tag) => (
-              <button
-                key={tag.idTag}
-                type="button"
-                className={`post-form__tag ${
-                  selectedTags.includes(tag.idTag)
-                    ? "post-form__tag--active"
-                    : ""
-                }`}
-                onClick={() => handleSelectTag(tag.idTag)}
-              >
-                #{tag.nombre}
-              </button>
-            ))}
+            {tags.length > 0 ? (
+              tags.map((tag) => (
+                <button
+                  key={tag.nombre}
+                  type="button"
+                  className={`post-form__tag ${
+                    selectedTags.includes(tag.nombre)
+                      ? "post-form__tag--active"
+                      : ""
+                  }`}
+                  onClick={() => handleSelectTag(tag.nombre)}
+                  disabled={loading}
+                >
+                  #{tag.nombre}
+                </button>
+              ))
+            ) : (
+              <p>No hay etiquetas disponibles</p>
+            )}
           </div>
         </aside>
       </form>

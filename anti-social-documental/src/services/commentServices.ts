@@ -31,13 +31,13 @@ const postCommentario = async (payload : CreateCommentPayload, idPost: string) :
     return nuevoComentario
 }
 
-const putComentario = async (payload : CreateCommentPayload, idPost : string, idComentario : string) : Promise<Comment> =>{
+const putComentario = async (contenido: string, idPost : string, idComentario : string) : Promise<Comment> =>{
     const respuesta = await fetch(`${API_URL}/post/${idPost}/comment/${idComentario}`, {
         method : "PUT",
         headers : {
             'Content-Type': 'application/json'
         },
-        body : JSON.stringify(payload)
+        body : JSON.stringify({ contenido })
     })
 
     noFindError(respuesta)

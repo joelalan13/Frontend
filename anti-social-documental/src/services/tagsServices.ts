@@ -32,7 +32,7 @@ const getTagsDePostById = async (idPost: string): Promise<string[]> => {
 
 const addTagToPost = async (idPost: string, tagName: string): Promise<{ message: string; tag: { nombre: string } }> => {
     
-    const respuesta = await fetch(`${API_URL}/post/${idPost}/tag`, {
+    const respuesta = await fetch(`${API_URL}/post/${idPost}/tags`, {
         method: "POST",
         headers: {
             'Content-Type': 'application/json'
@@ -49,7 +49,7 @@ const addTagToPost = async (idPost: string, tagName: string): Promise<{ message:
 
 const removeTagFromPost = async (idPost: string, tagName: string): Promise<{ message: string }> => {
     
-    const respuesta = await fetch(`${API_URL}/post/${idPost}/tag/${tagName}`, {
+    const respuesta = await fetch(`${API_URL}/post/${idPost}/tags/${tagName}`, {
         method: "DELETE",
     })
     

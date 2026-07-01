@@ -9,9 +9,10 @@ const D = "'Bricolage Grotesque',sans-serif"
 interface HeaderProps {
   screen: Screen
   onNav: (s: Screen) => void
+  onLogout: () => void
 }
 
-export default function Header({ screen, onNav }: HeaderProps) {
+export default function Header({ screen, onNav, onLogout }: HeaderProps) {
   const showNav = !["login", "register"].includes(screen)
 
   const navItems: { key: Screen; icon: React.ReactNode; label: string }[] = [
@@ -48,7 +49,7 @@ export default function Header({ screen, onNav }: HeaderProps) {
             ))}
             <button
               className="header__logout-btn"
-              onClick={() => onNav("login")}
+              onClick={onLogout}
               title="Cerrar sesión"
             >
               <LogOut size={13} />

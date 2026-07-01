@@ -1,11 +1,11 @@
-import { Routes, Route, useNavigate, useLocation } from "react-router"
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom"
 import { useState, useEffect } from "react"
-import api from './api';
 
 import Header from "./component/Header"
 import Footer from "./component/Footer"
 import Inicio from "./pages/Inicio"
 import Perfil from "./pages/Perfil"
+import PerfilUsuario from "./pages/PerfilUsuario"
 import Login from "./pages/Login"
 import Register from "./pages/Register"
 import NewPost from "./pages/NewPost"
@@ -17,7 +17,6 @@ function App() {
   const [screen, setScreen] = useState<Screen>("home")
   const navigate = useNavigate()
   const location = useLocation()
-
 
   // Sincronizar screen con la ruta actual
   useEffect(() => {
@@ -53,14 +52,21 @@ function App() {
     }
   }
 
+  const handleLogout = () => {
+    localStorage.removeItem('usuario')
+    setScreen("login")
+    navigate("/login")
+  }
+
   return (
     <div>
-        <Header screen={screen} onNav={handleNav} />
+        <Header screen={screen} onNav={handleNav} onLogout={handleLogout} />
         <Routes>
             <Route path="/" element={<Inicio/>}/>
             <Route path="/login" element={<Login/>}/>
             <Route path="/register" element={<Register/>}/>
             <Route path="/perfil" element={<Perfil/>} />
+            <Route path="/perfil/:userId" element={<PerfilUsuario/>}/>
             <Route path="/newPost" element={<NewPost/>}/>
             <Route path="/postDetails/:idPost" element={<PostDetails/>}/>
         </Routes>
