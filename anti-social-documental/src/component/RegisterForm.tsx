@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { User, Lock, Eye, ArrowRight, AlertCircle } from "lucide-react";
-import axios from "axios"; // 1. Importa axios
 import { useNavigate } from "react-router-dom";
+import usuarioServices from "../services/usuarioServices";
 // @ts-ignore: allow importing CSS without type declarations
 import "../styles/registerForm.css";
 
@@ -12,34 +12,38 @@ const RegisterForm = () => {
   const [apellido, setApellido] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
+    setError("");
 
-  // Validación corregida
-  if (!nickName || !nombre || !apellido || !password) { 
-    setError("Completá todos los campos obligatorios.");
-    return;
-  }
+    if (!nickName || !nombre || !apellido || !password) { 
+      setError("Completá todos los campos obligatorios.");
+      return;
+    }
 
-  try {
-    // POST hacia tu backend (según router.user.js)
-    const response = await axios.post("http://localhost:8080/usuario", {
-      nickName: nickName,
-      nombre: nombre, 
-      apellido: apellido,
-    });
+    setLoading(true);
 
-    console.log("Usuario creado:", response.data);
-    alert("¡Cuenta creada con éxito!");
-    
-    // Una vez creado, redirigimos al login para que el usuario ingrese
-    navigate("/login"); 
-  } catch (err: any) {
-    setError("Error al registrar: " + (err.response?.data?.message || "Servidor no disponible"));
-  }
-};
+    try {
+      const nuevoUsuario = await usuarioServices.postUsuario({
+        nickName,
+        nombre,
+        apellido,
+      });
+
+      console.log("Usuario creado:", nuevoUsuario);
+      alert("¡Cuenta creada con éxito!");
+      navigate("/login");
+    } catch (err: any) {
+      const mensajeError = err.message || "Error al registrar";
+      setError("Error al registrar: " + mensajeError);
+      console.error("Error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <main className="registro">
@@ -68,6 +72,7 @@ const RegisterForm = () => {
                   placeholder="ej: valen_ruiz"
                   value={nickName}
                   onChange={(e) => setNickName(e.target.value)}
+                  disabled={loading}
                 />
               </div>
             </label>
@@ -81,9 +86,11 @@ const RegisterForm = () => {
                   placeholder="Valentina Ruiz"
                   value={nombre}
                   onChange={(e) => setNombre(e.target.value)}
+                  disabled={loading}
                 />
               </div>
             </label>
+
             <label>
               APELLIDO *
               <div className="registro-form__input">
@@ -93,6 +100,7 @@ const RegisterForm = () => {
                   placeholder="Valentina Ruiz"
                   value={apellido}
                   onChange={(e) => setApellido(e.target.value)}
+                  disabled={loading}
                 />
               </div>
             </label>
@@ -106,6 +114,7 @@ const RegisterForm = () => {
                   placeholder="Mínimo 6 caracteres"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
                 />
                 <Eye size={17} />
               </div>
@@ -118,8 +127,12 @@ const RegisterForm = () => {
               </p>
             )}
 
-            <button className="registro-form__button" type="submit">
-              CREAR CUENTA
+            <button 
+              className="registro-form__button" 
+              type="submit"
+              disabled={loading}
+            >
+              {loading ? "CREANDO CUENTA..." : "CREAR CUENTA"}
               <ArrowRight size={17} />
             </button>
 

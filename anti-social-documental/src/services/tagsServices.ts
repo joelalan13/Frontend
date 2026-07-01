@@ -1,5 +1,5 @@
 import noFindError from "./noFindError"
-import type { Tag, TagPaginatedResponse } from "../../types"
+import type { Tag, TagPaginatedResponse } from "../types"
 
 const API_URL = "http://localhost:8080"
 

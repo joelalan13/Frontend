@@ -1,4 +1,4 @@
-import type { Comment, CreateCommentPayload } from "../../types";
+import type { Comment, CreateCommentPayload } from "../types";
 import noFindError from "./noFindError"
 
 const API_URL = "http://localhost:8080"
