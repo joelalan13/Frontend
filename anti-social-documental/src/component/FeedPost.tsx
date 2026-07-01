@@ -499,7 +499,7 @@ const FeedPost = ({ dataPost, onPostDeleted, onPostUpdated }: FeedPostProps) => 
               Comentar
             </Link>
             <Link
-              to={`/postDetails/${dataPost.idPost}`}
+              to={`/perfil/${dataPost.idUser}`}
               className="feedpost__btn feedpost__btn--primary"
             >
               Ver más →
