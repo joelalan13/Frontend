@@ -1,5 +1,6 @@
 import { Routes, Route, useNavigate, useLocation } from "react-router"
 import { useState, useEffect } from "react"
+import api from './api';
 
 import Header from "./component/Header"
 import Footer from "./component/Footer"
@@ -17,6 +18,7 @@ function App() {
   const navigate = useNavigate()
   const location = useLocation()
 
+
   // Sincronizar screen con la ruta actual
   useEffect(() => {
     const path = location.pathname
@@ -28,7 +30,7 @@ function App() {
     else setScreen("post")
   }, [location.pathname])
 
-  const handleNav = (s) => {
+  const handleNav = (s: Screen) => {
     setScreen(s)
     switch (s) {
       case "home":
@@ -51,7 +53,7 @@ function App() {
     }
   }
 
-  return(
+  return (
     <div>
         <Header screen={screen} onNav={handleNav} />
         <Routes>

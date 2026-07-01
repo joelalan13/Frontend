@@ -1,36 +1,45 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { User, Lock, Eye, ArrowRight, AlertCircle } from "lucide-react";
+import axios from "axios"; // 1. Importa axios
+import { useNavigate } from "react-router-dom";
 // @ts-ignore: allow importing CSS without type declarations
 import "../styles/registerForm.css";
 
 const RegisterForm = () => {
   const [nickName, setNickName] = useState("");
-  const [nombreCompleto, setNombreCompleto] = useState("");
+  const [nombre, setNombre] = useState("");
+  const [apellido, setApellido] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    if (!nickName || !nombreCompleto || !password) {
-      setError("Completá todos los campos obligatorios.");
-      return;
-    }
+  // Validación corregida
+  if (!nickName || !nombre || !apellido || !password) { 
+    setError("Completá todos los campos obligatorios.");
+    return;
+  }
 
-    if (password.length < 6) {
-      setError("La contraseña debe tener mínimo 6 caracteres.");
-      return;
-    }
-
-    setError("");
-
-    console.log({
-      nickName,
-      nombreCompleto,
-      password,
+  try {
+    // POST hacia tu backend (según router.user.js)
+    const response = await axios.post("http://localhost:8080/usuario", {
+      nickName: nickName,
+      nombre: nombre, 
+      apellido: apellido,
     });
-  };
+
+    console.log("Usuario creado:", response.data);
+    alert("¡Cuenta creada con éxito!");
+    
+    // Una vez creado, redirigimos al login para que el usuario ingrese
+    navigate("/login"); 
+  } catch (err: any) {
+    setError("Error al registrar: " + (err.response?.data?.message || "Servidor no disponible"));
+  }
+};
 
   return (
     <main className="registro">
@@ -64,14 +73,26 @@ const RegisterForm = () => {
             </label>
 
             <label>
-              NOMBRE COMPLETO *
+              NOMBRE *
               <div className="registro-form__input">
                 <User size={17} />
                 <input
                   type="text"
                   placeholder="Valentina Ruiz"
-                  value={nombreCompleto}
-                  onChange={(e) => setNombreCompleto(e.target.value)}
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                />
+              </div>
+            </label>
+            <label>
+              APELLIDO *
+              <div className="registro-form__input">
+                <User size={17} />
+                <input
+                  type="text"
+                  placeholder="Valentina Ruiz"
+                  value={apellido}
+                  onChange={(e) => setApellido(e.target.value)}
                 />
               </div>
             </label>
