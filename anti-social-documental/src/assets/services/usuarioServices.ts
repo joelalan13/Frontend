@@ -62,7 +62,9 @@ const getUserProfileById = async (idUsuario: string): Promise<User> => {
 
     noFindError(respuesta)
 
-    return respuesta.json()
+    const data = await respuesta.json()
+
+    return data?.usuario || data?.user || data
 }
 
 const followUser = async (idFollower: string, idFollowing: string): Promise<any> => {

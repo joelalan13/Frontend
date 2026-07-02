@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Container, Row, Col, Card, Button, Spinner, Alert, Tab, Tabs, Image, Modal, Carousel, Form } from 'react-bootstrap';
-import { Camera, Eye, Users } from 'lucide-react';
+import { Container, Row, Col, Spinner } from 'react-bootstrap';
+
 
 import ButtonScrollPerfil from '../component/ButtonScrollPerfil';
+import ProfileHeader from '../component/ProfileHeader';
+import ProfilePostImageCard from '../component/ProfilePostImageCard';
+import ProfilePostTextCard from '../component/ProfilePostTextCard';
+import ProfilePostDetailModal from '../component/ProfilePostDetailModal';
 import usuarioServices from '../assets/services/usuarioServices';
 // @ts-ignore: allow importing CSS without type declarations
 import '../styles/carrusel.css';
@@ -28,13 +32,14 @@ type Post = {
 };
 
 const Perfil = () => {
-    const [user, setUser] = useState<{ _id: string; nickName: string; nombre: string; apellido: string; fotoPerfil?: string; followers: any[]; following: any[] } | null>(null);
+    // Estado principal del perfil
+    const [user, setUser] = useState<{ _id: string; nickName: string; nombre: string; apellido: string; fotoPerfil?: string; followers: any; following: any } | null>(null);
     const [mostrarImagenes, setMostrarImagenes] = useState(true);
     const [selectedPost, setSelectedPost] = useState<Post | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
     const [commentAuthors, setCommentAuthors] = useState<Record<string, string>>({});
-    const [targetUserId, setTargetUserId] = useState('');
+    const [targetUserName, setTargetUserName] = useState('');
     const [targetUserInfo, setTargetUserInfo] = useState<{ _id?: string; nickName?: string; nombre?: string } | null>(null);
     const [isFollowingTarget, setIsFollowingTarget] = useState(false);
     const [followLoading, setFollowLoading] = useState(false);
@@ -43,9 +48,60 @@ const Perfil = () => {
     const [loading, setLoading] = useState(true);
     const [followersDetails, setFollowersDetails] = useState<{ id: string; label: string }[]>([]);
     const [followingDetails, setFollowingDetails] = useState<{ id: string; label: string }[]>([]);
+    const [profileImageError, setProfileImageError] = useState(false);
     const navigate = useNavigate();
 
-    // Primer useEffect: Carga el usuario
+    // Helpers de normalización y conteo de relaciones
+    const getRelationshipItems = (value: any) => {
+        if (Array.isArray(value)) return value;
+        if (value && typeof value === 'object') {
+            if (Array.isArray(value.items)) return value.items;
+            if (Array.isArray(value.data)) return value.data;
+            if (Array.isArray(value.followers)) return value.followers;
+            if (Array.isArray(value.following)) return value.following;
+        }
+        return [];
+    };
+
+    const getRelationshipCount = (value: any) => {
+        if (Array.isArray(value)) return value.length;
+        if (typeof value === 'number') return value;
+        if (value && typeof value === 'object') {
+            if (typeof value.count === 'number') return value.count;
+            if (typeof value.total === 'number') return value.total;
+            if (typeof value.length === 'number') return value.length;
+            if (Array.isArray(value.items)) return value.items.length;
+            if (Array.isArray(value.data)) return value.data.length;
+        }
+        return 0;
+    };
+
+    const normalizeUserData = (value: any, fallbackUser?: any) => {
+        if (!value) return value;
+
+        const photoValue = value.fotoPerfil ?? value.fotoPerfilUrl ?? value.profilePicture ?? value.foto ?? value.avatar ?? value.photo ?? value.image ?? fallbackUser?.fotoPerfil ?? fallbackUser?.fotoPerfilUrl ?? fallbackUser?.profilePicture ?? fallbackUser?.foto ?? fallbackUser?.avatar ?? fallbackUser?.photo ?? fallbackUser?.image ?? null;
+
+        return {
+            ...value,
+            fotoPerfil: photoValue,
+            followers: value.followers ?? value.followersCount ?? value.followersTotal ?? value.seguidores ?? [],
+            following: value.following ?? value.followingCount ?? value.followingTotal ?? value.seguidos ?? []
+        };
+    };
+
+    const getProfileImageSrc = (fotoPerfil?: string) => {
+        if (!fotoPerfil || profileImageError) return 'https://via.placeholder.com/150';
+        if (fotoPerfil.startsWith('http://') || fotoPerfil.startsWith('https://')) return fotoPerfil;
+        if (fotoPerfil.startsWith('/')) return `http://localhost:8080${fotoPerfil}`;
+        return `http://localhost:8080/${fotoPerfil}`;
+    };
+
+    // Efecto: resetear la imagen de perfil cuando cambia el usuario
+    useEffect(() => {
+        setProfileImageError(false);
+    }, [user?._id, user?.fotoPerfil]);
+
+    // Efecto: cargar el usuario desde localStorage al entrar al perfil
     useEffect(() => {
         const storedUser = localStorage.getItem('usuario');
         console.log("Usuario almacenado en localStorage:", storedUser);
@@ -53,14 +109,16 @@ const Perfil = () => {
             navigate('/login');
         } else {
             console.log("Cargando usuario desde localStorage...");
-            localStorage.setItem('usuario', JSON.stringify(JSON.parse(storedUser))); // Asegura que el usuario esté en el formato correcto
-            setUser(JSON.parse(storedUser));
+            const parsedUser = JSON.parse(storedUser);
+            localStorage.setItem('usuario', JSON.stringify(parsedUser));
+            setUser(normalizeUserData(parsedUser));
         }
         setIsChecking(false); 
     }, [navigate]);
 
     
     
+    // Efecto: cargar los posts del usuario autenticado
     useEffect(() => {
         if (!user) return;
 
@@ -79,26 +137,36 @@ const Perfil = () => {
         fetchPosts();
     }, [user]);
 
+    // Efecto: sincronizar el estado de seguimiento con el usuario objetivo
     useEffect(() => {
-        if (!targetUserId || !user?._id || targetUserId === user._id) {
+        if (!targetUserName || !user?._id || targetUserName.toLowerCase() === user.nickName?.toLowerCase()) {
             setTargetUserInfo(null);
             setIsFollowingTarget(false);
             return;
         }
 
         const syncTargetUser = async () => {
-            setIsFollowingTarget(isFollowingThisUser(targetUserId));
             try {
-                const profile = await usuarioServices.getUserProfileById(targetUserId);
-                setTargetUserInfo(profile);
+                const users = await usuarioServices.getUsuarios();
+                const matchedUser = users.find((candidate: any) => candidate?.nickName?.toLowerCase() === targetUserName.toLowerCase()) as any;
+
+                if (!matchedUser) {
+                    setTargetUserInfo(null);
+                    setIsFollowingTarget(false);
+                    return;
+                }
+
+                setIsFollowingTarget(isFollowingThisUser(matchedUser._id || matchedUser.id));
+                setTargetUserInfo(matchedUser);
             } catch (error) {
                 console.error('No se pudo cargar el usuario objetivo', error);
                 setTargetUserInfo(null);
+                setIsFollowingTarget(false);
             }
         };
 
         syncTargetUser();
-    }, [targetUserId, user?._id, user?.following]);
+    }, [targetUserName, user?._id, user?.following, user?.nickName]);
 
     useEffect(() => {
         if (!user) {
@@ -133,8 +201,8 @@ const Perfil = () => {
             };
 
             const [followers, following] = await Promise.all([
-                normalizeRelationships(Array.isArray(user.followers) ? user.followers : []),
-                normalizeRelationships(Array.isArray(user.following) ? user.following : [])
+                normalizeRelationships(getRelationshipItems(user.followers)),
+                normalizeRelationships(getRelationshipItems(user.following))
             ]);
 
             setFollowersDetails(followers);
@@ -183,6 +251,23 @@ const Perfil = () => {
         loadCommentAuthors();
     }, [selectedPost]);
 
+    // Asegúrate de que el useEffect que carga los datos sea robusto
+    useEffect(() => {
+        const loadUserData = async () => {
+            const storedUser = localStorage.getItem('usuario');
+            if (storedUser) {
+                const parsedUser = JSON.parse(storedUser);
+                try {
+                    const updatedUser = await usuarioServices.getUserProfileById(parsedUser._id);
+                    setUser(normalizeUserData(updatedUser, parsedUser));
+                } catch (e) {
+                    setUser(normalizeUserData(parsedUser, parsedUser)); // Fallback al local
+                }
+            }
+        };
+        loadUserData();
+    }, []);
+
     if (isChecking) {
         return <Spinner animation="border" className="mt-5" />;
     }
@@ -191,9 +276,11 @@ const Perfil = () => {
         return null;
     }
 
+    // Separación de posts por tipo para la vista del perfil
     const postsConImagen = posts.filter(p => p.images && p.images.length > 0);
     const postsSinImagen = posts.filter(p => !p.images || p.images.length === 0);
 
+    // Handlers de acciones del perfil
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -222,11 +309,13 @@ const Perfil = () => {
             const normalizedUser = { 
                 ...currentUser,
                 ...updatedUserData,
+                fotoPerfil: updatedUserData?.fotoPerfil || updatedUserData?.fotoPerfilUrl || updatedUserData?.profilePicture || currentUser?.fotoPerfil || currentUser?.fotoPerfilUrl || currentUser?.profilePicture || null,
                 _id: updatedUserData?._id || updatedUserData?.id || currentUser?._id || currentUser?.id,
             };
 
             localStorage.setItem('usuario', JSON.stringify(normalizedUser));
             setUser(normalizedUser);
+            setProfileImageError(false);
             console.log("Usuario actualizado en localStorage:", normalizedUser);
             alert("Foto actualizada");
         } catch (error) {
@@ -263,11 +352,28 @@ const Perfil = () => {
     };
 
     const handleFollowToggle = async () => {
-        if (!user?._id || !targetUserId || targetUserId === user._id) return;
+        if (!user?._id || !targetUserName.trim()) return;
+
+        const normalizedTarget = targetUserName.trim();
+        if (normalizedTarget.toLowerCase() === user.nickName?.toLowerCase()) {
+            alert('No puedes seguirte a vos mismo.');
+            return;
+        }
 
         setFollowLoading(true);
 
         try {
+            const users = await usuarioServices.getUsuarios();
+            const matchedUser = users.find((candidate: any) => candidate?.nickName?.toLowerCase() === normalizedTarget.toLowerCase()) as any;
+
+            if (!matchedUser) {
+                alert('No se encontró un usuario con ese nickname.');
+                setFollowLoading(false);
+                return;
+            }
+
+            const targetUserId = matchedUser._id || matchedUser.id;
+
             if (isFollowingTarget) {
                 await usuarioServices.unfollowUser(user._id, targetUserId);
                 const updatedFollowing = (user.following || []).filter((item: any) => {
@@ -288,12 +394,7 @@ const Perfil = () => {
                 setIsFollowingTarget(true);
             }
 
-            try {
-                const profile = await usuarioServices.getUserProfileById(targetUserId);
-                setTargetUserInfo(profile);
-            } catch (error) {
-                console.error('No se pudo recargar el perfil del usuario objetivo', error);
-            }
+            setTargetUserInfo(matchedUser);
         } catch (error) {
             console.error('Error al seguir/dejar de seguir', error);
             alert('No se pudo completar la acción.');
@@ -333,88 +434,26 @@ const Perfil = () => {
         return [];
     };
     
+    // Render del perfil
     return (
         <Container className="mt-5 text-center">
-            {/* Header: Foto, Nick, Nombre, Seguidores */}
-            <div className="d-flex flex-column align-items-center mb-4">
-                <div className="position-relative">
-                    <input 
-                        type="file" 
-                        id="fileInput" 
-                        style={{ display: 'none' }} 
-                        onChange={handleFileChange} 
-                    />
-                    <div className="position-relative d-inline-block">
-                    <Image 
-                        src={user.fotoPerfil ? `http://localhost:8080${user.fotoPerfil}` : "https://via.placeholder.com/150"}
-                        roundedCircle 
-                        width={150} 
-                        height={150}
-                        style={{ objectFit: 'cover' }} // Esto ayuda a que no se deforme 
-                    />
-                    {/* Botón flotante para cambiar */}
-                    <Button 
-                        variant="secondary" 
-                        className="position-absolute bottom-0 end-0 rounded-circle"
-                        onClick={() => document.getElementById('fileInput')?.click()}
-                    >
-                        <Camera size={16} />
-                    </Button>
-                </div>
-                    
-                </div>
-                <h2 className="mt-3">{user?.nickName}</h2>
-                <p className="text-muted">{user?.nombre} {user?.apellido}</p>
-                
-                <div className="d-flex flex-wrap justify-content-center gap-3 mt-2">
-                    <div className="border rounded px-3 py-2" style={{ minWidth: '180px' }}>
-                        <div><strong>{user?.followers?.length || 0}</strong> Seguidores</div>
-                        <div className="small text-muted mt-1">
-                            {followersDetails.length > 0 ? (
-                                followersDetails.slice(0, 5).map((person) => (
-                                    <div key={person.id || person.label}>{person.label}</div>
-                                ))
-                            ) : (
-                                <span>No tienes seguidores todavía</span>
-                            )}
-                        </div>
-                    </div>
-                    <div className="border rounded px-3 py-2" style={{ minWidth: '180px' }}>
-                        <div><strong>{user?.following?.length || 0}</strong> Seguidos</div>
-                        <div className="small text-muted mt-1">
-                            {followingDetails.length > 0 ? (
-                                followingDetails.slice(0, 5).map((person) => (
-                                    <div key={person.id || person.label}>{person.label}</div>
-                                ))
-                            ) : (
-                                <span>No sigues a nadie todavía</span>
-                            )}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="d-flex flex-column align-items-center gap-2 mt-3" style={{ maxWidth: '360px', width: '100%' }}>
-                    <div className="d-flex gap-2 w-100">
-                        <Form.Control
-                            size="sm"
-                            placeholder="ID del usuario a seguir"
-                            value={targetUserId}
-                            onChange={(e) => {
-                                setTargetUserId(e.target.value);
-                                setTargetUserInfo(null);
-                            }}
-                        />
-                        <Button size="sm" onClick={handleFollowToggle} disabled={followLoading || !targetUserId || targetUserId === user?._id}>
-                            {followLoading ? '...' : isFollowingTarget ? 'Dejar de seguir' : 'Seguir'}
-                        </Button>
-                    </div>
-                    {targetUserInfo && (
-                        <small className="text-muted">
-                            {targetUserInfo.nickName || targetUserInfo.nombre || 'Usuario objetivo'}
-                        </small>
-                    )}
-                </div>
-            </div>
+            <ProfileHeader
+                user={user}
+                targetUserId={targetUserName}
+                targetUserInfo={targetUserInfo}
+                followLoading={followLoading}
+                isFollowingTarget={isFollowingTarget}
+                onFileChange={handleFileChange}
+                onFollowToggle={handleFollowToggle}
+                onTargetUserIdChange={(value) => {
+                    setTargetUserName(value);
+                    setTargetUserInfo(null);
+                }}
+                getRelationshipCount={getRelationshipCount}
+                getProfileImageSrc={getProfileImageSrc}
+                onProfileImageError={() => setProfileImageError(true)}
+                onProfileImageLoad={() => setProfileImageError(false)}
+            />
 
             {/* Pestañas de Posts */}
             <ButtonScrollPerfil activo={mostrarImagenes} setActivo={setMostrarImagenes} />
@@ -423,117 +462,26 @@ const Perfil = () => {
                 {mostrarImagenes ? (
                     postsConImagen.map(post => (
                         <Col md={4} key={post._id}>
-                            <Card className="h-100 shadow-sm" style={{ cursor: 'pointer' }} onClick={() => handleVerDetalle(post)}>
-                                <Card.Img 
-                                    variant="top" 
-                                    src={`http://localhost:8080${post.images?.[0]?.url}`} 
-                                    style={{ height: '220px', objectFit: 'cover' }}
-                                />
-                                {post.images && post.images.length > 1 && (
-                                    <Card.Footer className="text-muted small">
-                                        {post.images.length} imágenes
-                                    </Card.Footer>
-                                )}
-                            </Card>
+                            <ProfilePostImageCard post={post} onClick={() => handleVerDetalle(post)} />
                         </Col>
                     ))
                 ) : (
-                    // MODO TEXTO (Estilo Twitter)
                     postsSinImagen.map(post => (
                         <Col md={12} key={post._id} className="d-flex justify-content-center">
-                            <Card 
-                                className="mb-3 p-3 border-0 shadow-sm" 
-                                style={{ 
-                                    width: '100%', 
-                                    maxWidth: '600px', 
-                                    borderRadius: '12px',
-                                    backgroundColor: '#f8f9fa', // Gris claro solicitado
-                                    cursor: 'pointer'
-                                }}
-                                onClick={() => handleVerDetalle(post)}
-                            >
-                                <Card.Body>
-                                    <Card.Text style={{ fontSize: '1.1rem', marginBottom: '15px' }}>
-                                        {post.descripcion}
-                                    </Card.Text>
-
-                                    {/* AQUÍ ESTÁ LA LÓGICA DE TAGS */}
-                                    {getPostTags(post).length > 0 && (
-                                        <div className="d-flex flex-wrap mb-2">
-                                            {getPostTags(post).map((tag: any, index: number) => (
-                                                <span 
-                                                    key={`${tag}-${index}`} 
-                                                    className="badge bg-info text-dark me-2 mb-2"
-                                                    style={{ fontSize: '0.85rem', fontWeight: '500' }}
-                                                >
-                                                    #{tag}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
-                                    
-                                    <small className="text-muted d-block mt-2">
-                                        Publicado el: {new Date(post.createdAt || '').toLocaleDateString()}
-                                    </small>
-                                </Card.Body>
-                            </Card>
+                            <ProfilePostTextCard post={post} onClick={() => handleVerDetalle(post)} getPostTags={getPostTags} />
                         </Col>
                     ))
                 )}
             </Row>
-            <Modal show={showModal} onHide={() => setShowModal(false)} size="lg" >
-                <Modal.Header closeButton>
-                    <Modal.Title>Detalle</Modal.Title>
-                </Modal.Header>
-                <Modal.Body >
-                    <Row>
-                        <Col md={7}>
-                            {selectedPost?.images && selectedPost.images.length > 0 ? (
-                                <Carousel activeIndex={activeIndex} onSelect={(index) => setActiveIndex(index)} interval={null}>
-                                    {selectedPost.images.map((image, index) => (
-                                        <Carousel.Item key={image._id || `${image.url}-${index}`}>
-                                            <img
-                                                src={`http://localhost:8080${image.url}`}
-                                                className="d-block w-100 rounded"
-                                                style={{ height: '420px', objectFit: 'cover' }}
-                                                alt={`Imagen ${index + 1}`}
-                                            />
-                                        </Carousel.Item>
-                                    ))}
-                                </Carousel>
-                            ) : (
-                                <div className="text-muted">No hay imágenes para mostrar.</div>
-                            )}
-                        </Col>
-                        <Col md={5}>
-                            <p>{selectedPost?.descripcion}</p>
-                            {getPostTags(selectedPost).length > 0 ? (
-                                <div className="mb-3">
-                                    {getPostTags(selectedPost).map((tag: any, index: number) => (
-                                        <span key={`${tag}-${index}`} className="badge bg-secondary me-2 mb-2">
-                                            #{typeof tag === 'string' ? tag : tag?.nombre || 'tag'}
-                                        </span>
-                                    ))}
-                                </div>
-                            ) : null}
-                            <hr />
-                            <h6>Comentarios</h6>
-                            {selectedPost?.Comments && selectedPost.Comments.length > 0 ? (
-                                <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
-                                    {selectedPost.Comments.map((comment: any, index: number) => (
-                                        <div key={comment.idComment || comment._id || index} className="mb-3 p-2 border rounded bg-light">
-                                            <strong>{getCommentAuthorName(comment)}</strong>
-                                            <div>{comment.contenido || 'Sin texto'}</div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-muted">No hay comentarios aún.</div>
-                            )}
-                        </Col>
-                    </Row>
-                </Modal.Body>
-            </Modal>
+            <ProfilePostDetailModal
+                show={showModal}
+                onHide={() => setShowModal(false)}
+                selectedPost={selectedPost}
+                activeIndex={activeIndex}
+                onSelect={(index) => setActiveIndex(index)}
+                getPostTags={getPostTags}
+                getCommentAuthorName={getCommentAuthorName}
+            />
         </Container>
     );
 };

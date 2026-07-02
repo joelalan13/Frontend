@@ -24,8 +24,17 @@ const LoginForm = () => {
             console.log("Usuario encontrado:", usuarioEncontrado);
 
             if (usuarioEncontrado && password === "123456") {
-                console.log("Guardando en localStorage...", usuarioEncontrado);
-                localStorage.setItem('usuario', JSON.stringify(usuarioEncontrado));
+                let usuarioPersistido = usuarioEncontrado;
+
+                try {
+                    const perfilResponse = await api.get(`/usuario/${usuarioEncontrado._id}/profile`);
+                    usuarioPersistido = perfilResponse.data?.usuario || perfilResponse.data?.user || perfilResponse.data || usuarioEncontrado;
+                } catch (profileError) {
+                    console.warn("No se pudo refrescar el perfil completo, se usará la información del listado", profileError);
+                }
+
+                console.log("Guardando en localStorage...", usuarioPersistido);
+                localStorage.setItem('usuario', JSON.stringify(usuarioPersistido));
                 const guardado = localStorage.getItem('usuario');
                 console.log("¿Se guardó realmente?:", guardado);
                 console.log("Login exitoso, redirigiendo...");
