@@ -11,6 +11,7 @@ import ProfilePostImageCard from '../component/ProfilePostImageCard';
 import ProfilePostTextCard from '../component/ProfilePostTextCard';
 import ProfilePostDetailModal from '../component/ProfilePostDetailModal';
 import usuarioServices from "../services/usuarioServices";
+// @ts-ignore: Allow side-effect CSS import without declarations
 import '../styles/profileStyles.css';
 
 type PostImage = {
@@ -124,7 +125,8 @@ const PerfilUsuario = () => {
                 } else {
                     setIsOwnProfile(false);
                     if (currentUser) {
-                        const following = isFollowingThisUser(userData._id);
+                        const targetId = userData._id ?? userData.idUser ?? '';
+                        const following = isFollowingThisUser(targetId);
                         setIsFollowing(following);
                     }
                 }
