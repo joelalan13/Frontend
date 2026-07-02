@@ -1,0 +1,44 @@
+.tag-filter-bar {
+  display: flex;
+  gap: 0;
+  background-color: #0a0e0b;
+  padding: 12px 0;
+  border-top: 3px solid #00D166;
+  border-bottom: 3px solid #00D166;
+  overflow-x: auto;
+  align-items: center;
+}
+
+.tag-filter-option {
+  padding: 8px 16px;
+  background-color: #0a0e0b;
+  color: #888;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.2s;
+  white-space: nowrap;
+  border-right: 1px solid #2a3e2d;
+  letter-spacing: 0.05em;
+}
+
+.tag-filter-option:last-child {
+  border-right: none;
+}
+
+.tag-filter-option:hover {
+  color: #EDFAEE;
+  background-color: rgba(0, 209, 102, 0.05);
+}
+
+.tag-filter-option.active {
+  background-color: #49C6D9;
+  color: #030A04;
+  font-weight: bold;
+}
+
+.tag-filter-option.active:hover {
+  background-color: #3ab5c8;
+  color: #030A04;
+}

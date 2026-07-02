@@ -1,0 +1,133 @@
+/* Profile Form Inputs y Botones */
+
+/* Inputs personalizados */
+.profile-input {
+  background-color: #111812 !important;
+  border: 1px solid #243224 !important;
+  color: #EDFAEE !important;
+  border-radius: 4px !important;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  padding: 0.75rem 1rem !important;
+}
+
+.profile-input::placeholder {
+  color: #7d8d81 !important;
+}
+
+.profile-input:focus {
+  background-color: #151a16 !important;
+  border-color: #00D166 !important;
+  color: #EDFAEE !important;
+  box-shadow: 0 0 0 0.2rem rgba(0, 209, 102, 0.15) !important;
+  outline: none !important;
+}
+
+.profile-input:hover {
+  border-color: #49C6D9 !important;
+}
+
+/* Botón Seguir */
+.profile-btn-follow {
+  background-color: #00D166;
+  color: #030A04;
+  border: none;
+  border-radius: 4px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.profile-btn-follow:hover {
+  background-color: #00c75a;
+  box-shadow: 0 4px 12px rgba(0, 209, 102, 0.3);
+}
+
+.profile-btn-follow:active {
+  transform: scale(0.98);
+}
+
+.profile-btn-follow:disabled {
+  background-color: #7d8d81;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Botón Dejar de Seguir */
+.profile-btn-unfollow {
+  background-color: #ff6b6b;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.profile-btn-unfollow:hover {
+  background-color: #ff5252;
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+.profile-btn-unfollow:active {
+  transform: scale(0.98);
+}
+
+.profile-btn-unfollow:disabled {
+  background-color: #7d8d81;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Contenedor de búsqueda y botón */
+.profile-search-container {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 360px;
+}
+
+.profile-search-container .profile-input {
+  flex: 1;
+}
+
+.profile-search-container .profile-btn-follow {
+  flex-shrink: 0;
+  width: 140px;
+}
+
+/* Estados del botón de seguir */
+.profile-btn-follow.is-following {
+  background-color: #ff6b6b;
+  color: #fff;
+}
+
+.profile-btn-follow.is-following:hover {
+  background-color: #ff5252;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .profile-input {
+    font-size: 0.9rem;
+    padding: 0.65rem 0.85rem !important;
+  }
+
+  .profile-btn-follow,
+  .profile-btn-unfollow {
+    padding: 0.65rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .profile-search-container .profile-btn-follow {
+    width: 120px;
+  }
+}

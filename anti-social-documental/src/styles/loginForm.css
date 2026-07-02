@@ -1,0 +1,74 @@
+.login-form {
+  background: #0b120d;
+  border: 1px solid #1d3925;
+  padding: 1.8rem;
+}
+
+.login-form label {
+  display: block;
+  color: #8aa18f;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 1.1rem;
+}
+
+.login-form__input {
+  margin-top: 0.5rem;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 0.9rem;
+  border: 1px solid #1c3a25;
+  background: #0f1711;
+  color: #7f9285;
+}
+
+.login-form__input input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #f4fff5;
+  font-size: 0.95rem;
+}
+
+.login-form__button {
+  width: 100%;
+  height: 50px;
+  margin-top: 0.25rem;
+  background: #00d166;
+  border: none;
+  color: #031006;
+  cursor: pointer;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.login-form p {
+  text-align: center;
+  color: #7f9285;
+  margin-top: 1.6rem;
+  margin-bottom: 0;
+  font-size: 0.9rem;
+}
+
+.login-form span,
+.login-form a {
+  color: #00d166;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.login-form__input input:-webkit-autofill,
+.login-form__input input:-webkit-autofill:hover,
+.login-form__input input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f4fff5;
+  -webkit-box-shadow: 0 0 0 1000px #0f1711 inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
