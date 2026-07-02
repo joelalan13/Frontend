@@ -1,7 +1,6 @@
 import type { Comment, CreateCommentPayload } from "../types";
+import { API_URL } from "../config/api"
 import noFindError from "./noFindError"
-
-const API_URL = "http://localhost:8080"
 
 const getComentariosDePost = async(idPost: string) : Promise<Comment[]> => {
 
