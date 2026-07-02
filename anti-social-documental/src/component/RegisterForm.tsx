@@ -104,7 +104,7 @@ const RegisterForm = () => {
                 <Lock size={17} />
                 <input
                   type="password"
-                  placeholder="Mínimo 6 caracteres"
+                  placeholder="123456"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />

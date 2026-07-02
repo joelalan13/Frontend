@@ -24,7 +24,10 @@ const LoginForm = () => {
             console.log("Usuario encontrado:", usuarioEncontrado);
 
             if (usuarioEncontrado && password === "123456") {
+                console.log("Guardando en localStorage...", usuarioEncontrado);
                 localStorage.setItem('usuario', JSON.stringify(usuarioEncontrado));
+                const guardado = localStorage.getItem('usuario');
+                console.log("¿Se guardó realmente?:", guardado);
                 console.log("Login exitoso, redirigiendo...");
                 navigate('/perfil');
             } else {
