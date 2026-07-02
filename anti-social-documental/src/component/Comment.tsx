@@ -5,7 +5,7 @@ import type { Comment as CommentType, User } from "../types";
 import usuarioServices from "../services/usuarioServices";
 import commentServices from "../services/commentServices";
 import { getAvatarColor } from "../utils/getAvatarColor";
-// @ts-ignore: allow importing CSS without type declarations
+import { API_URL } from "../constants";
 import "../styles/comment.css";
 
 type Props = {
@@ -23,9 +23,9 @@ const Comment = ({ comment, idPost, onCommentDeleted, onCommentUpdated }: Props)
   const [editing, setEditing] = useState(false);
   const [editingContent, setEditingContent] = useState(comment.contenido);
   const [saving, setSaving] = useState(false);
+  const [profileImageError, setProfileImageError] = useState(false);
   const navigate = useNavigate();
 
-  // Cargar usuario actual
   useEffect(() => {
     const storedUser = localStorage.getItem('usuario');
     if (storedUser) {
@@ -33,7 +33,6 @@ const Comment = ({ comment, idPost, onCommentDeleted, onCommentUpdated }: Props)
     }
   }, []);
 
-  // Cargar datos del usuario del comentario
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -46,14 +45,12 @@ const Comment = ({ comment, idPost, onCommentDeleted, onCommentUpdated }: Props)
           setUserData(user);
         }
       } catch (err) {
-        console.error("Error al cargar usuario del comentario:", err);
       }
     };
 
     fetchUserData();
   }, [comment.idUser]);
 
-  // Función para obtener iniciales
   const getInitials = (): string => {
     if (!userData) return "U";
     const nombre = userData.nombre?.charAt(0).toUpperCase() || "";
@@ -61,10 +58,15 @@ const Comment = ({ comment, idPost, onCommentDeleted, onCommentUpdated }: Props)
     return nombre + apellido;
   };
 
-  // Función para calcular tiempo relativo
+  const getProfileImageUrl = (): string | null => {
+    if (!userData?.fotoPerfil || profileImageError) return null;
+    if (userData.fotoPerfil.startsWith('http://') || userData.fotoPerfil.startsWith('https://')) return userData.fotoPerfil;
+    if (userData.fotoPerfil.startsWith('/')) return `${API_URL}${userData.fotoPerfil}`;
+    return `${API_URL}/${userData.fotoPerfil}`;
+  };
+
   const getRelativeTime = (): string => {
     if (!comment.createdAt) return "Hace poco";
-
     const createdDate = new Date(comment.createdAt);
     const now = new Date();
     const diffMs = now.getTime() - createdDate.getTime();
@@ -76,7 +78,6 @@ const Comment = ({ comment, idPost, onCommentDeleted, onCommentUpdated }: Props)
     if (diffMins < 60) return `Hace ${diffMins}m`;
     if (diffHours < 24) return `Hace ${diffHours}h`;
     if (diffDays < 7) return `Hace ${diffDays}d`;
-
     return createdDate.toLocaleDateString("es-ES");
   };
 
@@ -99,7 +100,6 @@ const Comment = ({ comment, idPost, onCommentDeleted, onCommentUpdated }: Props)
         onCommentDeleted();
       }
     } catch (err) {
-      console.error("Error al eliminar comentario:", err);
       alert("Error al eliminar el comentario");
     } finally {
       setDeleting(false);
@@ -119,12 +119,7 @@ const Comment = ({ comment, idPost, onCommentDeleted, onCommentUpdated }: Props)
 
     setSaving(true);
     try {
-      // Solo pasar el contenido editado
-      await commentServices.putComentario(
-        editingContent,
-        idPost,
-        comment._id || comment.idComment
-      );
+      await commentServices.putComentario(editingContent, idPost, comment._id || comment.idComment);
       alert("Comentario actualizado exitosamente");
       setEditing(false);
       setShowMenu(false);
@@ -132,7 +127,6 @@ const Comment = ({ comment, idPost, onCommentDeleted, onCommentUpdated }: Props)
         onCommentUpdated();
       }
     } catch (err) {
-      console.error("Error al editar comentario:", err);
       alert("Error al editar el comentario");
     } finally {
       setSaving(false);
@@ -147,7 +141,9 @@ const Comment = ({ comment, idPost, onCommentDeleted, onCommentUpdated }: Props)
   const isOwnComment = currentUser && (currentUser._id === userId || currentUser.idUser === userId);
 
   const handleUserClick = () => {
-    if (userId) {
+    if (isOwnComment) {
+      navigate('/perfil');
+    } else if (userId) {
       navigate(`/perfil/${userId}`);
     }
   };
@@ -156,11 +152,21 @@ const Comment = ({ comment, idPost, onCommentDeleted, onCommentUpdated }: Props)
     <article className="comment" style={{ position: "relative" }}>
       <button 
         className="comment__avatar"
-        style={{ backgroundColor: avatarColor, border: "none", cursor: "pointer" }}
+        style={{
+          backgroundColor: avatarColor,
+          border: "none",
+          cursor: "pointer",
+          padding: 0,
+          overflow: "hidden",
+          backgroundImage: getProfileImageUrl() ? `url(${getProfileImageUrl()})` : 'none',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}
         onClick={handleUserClick}
+        onError={() => setProfileImageError(true)}
         title="Ver perfil"
       >
-        {getInitials()}
+        {!getProfileImageUrl() && getInitials()}
       </button>
 
       <div className="comment__body">
@@ -171,9 +177,7 @@ const Comment = ({ comment, idPost, onCommentDeleted, onCommentUpdated }: Props)
             onClick={handleUserClick}
             title="Ver perfil"
           >
-            {userData
-              ? `${userData.nombre} ${userData.apellido}`
-              : "Cargando..."}
+            {userData ? `${userData.nombre} ${userData.apellido}` : "Cargando..."}
           </span>
 
           <span className="comment__time">
@@ -298,8 +302,8 @@ const Comment = ({ comment, idPost, onCommentDeleted, onCommentUpdated }: Props)
               </button>
               <button
                 onClick={() => {
-                  setEditing(false)
-                  setEditingContent(comment.contenido)
+                  setEditing(false);
+                  setEditingContent(comment.contenido);
                 }}
                 disabled={saving}
                 style={{
