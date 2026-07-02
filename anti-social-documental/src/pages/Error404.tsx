@@ -1,5 +1,5 @@
 import { Container } from "react-bootstrap"
-import ErrorImage from "../assets/404.gray.png"
+import ErrorImage from "../assets/404-robot.png"
 import "../styles/error404.css"
 
 const Error404 = () => {
