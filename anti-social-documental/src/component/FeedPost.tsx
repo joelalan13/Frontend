@@ -18,8 +18,9 @@ interface FeedPostProps {
 }
 
 const FeedPost = ({ dataPost, onPostDeleted, onPostUpdated }: FeedPostProps) => {
-  const [likes, setLikes] = useState<number>(dataPost.likes || 0)
+  const [likes, setLikes] = useState<number>(dataPost.likes ?? dataPost.likedBy?.length ?? 0)
   const [yaClickeado, setYaClickeado] = useState<boolean>(false)
+  const [updatingLike, setUpdatingLike] = useState<boolean>(false)
   const [userData, setUserData] = useState<User | null>(null)
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [activeImageIndex, setActiveImageIndex] = useState(0)
@@ -42,6 +43,12 @@ const FeedPost = ({ dataPost, onPostDeleted, onPostUpdated }: FeedPostProps) => 
       setCurrentUser(JSON.parse(storedUser))
     }
   }, [])
+
+  useEffect(() => {
+    const currentUserId = currentUser?._id || currentUser?.idUser
+    setLikes(dataPost.likes ?? dataPost.likedBy?.length ?? 0)
+    setYaClickeado(Boolean(currentUserId && dataPost.likedBy?.includes(currentUserId)))
+  }, [currentUser, dataPost.likes, dataPost.likedBy])
 
   // Cargar datos del usuario del post
   useEffect(() => {
@@ -98,9 +105,37 @@ const FeedPost = ({ dataPost, onPostDeleted, onPostUpdated }: FeedPostProps) => 
     loadCommentAuthors()
   }, [dataPost])
 
-  const handleLike = (): void => {
-    !yaClickeado ? setLikes((prev) => prev + 1) : setLikes((prev) => prev - 1)
-    setYaClickeado(!yaClickeado)
+  const handleLike = async (): Promise<void> => {
+    const currentUserId = currentUser?._id || currentUser?.idUser
+    if (!currentUserId) {
+      alert("Inicia sesión para indicar que te gusta una publicación")
+      navigate("/login")
+      return
+    }
+
+    if (updatingLike) return
+
+    const previousLiked = yaClickeado
+    const previousLikes = likes
+    setYaClickeado(!previousLiked)
+    setLikes(Math.max(0, previousLikes + (previousLiked ? -1 : 1)))
+    setUpdatingLike(true)
+
+    try {
+      const response = previousLiked
+        ? await postServices.removeLike(dataPost.idPost as string, currentUserId)
+        : await postServices.addLike(dataPost.idPost as string, currentUserId)
+
+      setLikes(response.likes)
+      setYaClickeado(response.liked)
+    } catch (error) {
+      setLikes(previousLikes)
+      setYaClickeado(previousLiked)
+      console.error("No se pudo actualizar el me gusta", error)
+      alert("No se pudo actualizar el me gusta")
+    } finally {
+      setUpdatingLike(false)
+    }
   }
 
   const handleUserClick = (): void => {
@@ -590,6 +625,7 @@ const FeedPost = ({ dataPost, onPostDeleted, onPostUpdated }: FeedPostProps) => 
             <button
               className={`feedpost__btn ${yaClickeado ? "feedpost__btn--active" : ""}`}
               onClick={handleLike}
+              disabled={updatingLike}
             >
               <ThumbsUp size={16} />
               Me gusta

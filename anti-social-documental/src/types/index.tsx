@@ -28,6 +28,7 @@ export interface Post {
   tags?: string[]
   Comments?: Comment[]
   likes?: number
+  likedBy?: string[]
   createdAt?: Date
   updatedAt?: Date
 }
@@ -58,6 +59,12 @@ export interface RegisterPayload {
 export interface CreatePostPayload {
   idUser: string
   descripcion: string
+}
+
+export interface LikeResponse {
+  likes: number
+  liked: boolean
+  likedBy: string[]
 }
 
 export interface CreateCommentPayload {

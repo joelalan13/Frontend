@@ -1,4 +1,4 @@
-import type { Post, CreatePostPayload } from "../types"
+import type { Post, CreatePostPayload, LikeResponse } from "../types"
 import noFindError from "./noFindError"
 import { API_URL } from "../constants"
 
@@ -49,4 +49,20 @@ const deletePost = async (idPost: string): Promise<void> => {
   noFindError(respuesta)
 }
 
-export default { getPostById, getPosts, putPost, postPost, deletePost }
+const addLike = async (idPost: string, idUser: string): Promise<LikeResponse> => {
+  const respuesta = await fetch(`${API_URL}/post/${idPost}/like/${idUser}`, {
+    method: "POST",
+  })
+  noFindError(respuesta)
+  return respuesta.json()
+}
+
+const removeLike = async (idPost: string, idUser: string): Promise<LikeResponse> => {
+  const respuesta = await fetch(`${API_URL}/post/${idPost}/like/${idUser}`, {
+    method: "DELETE",
+  })
+  noFindError(respuesta)
+  return respuesta.json()
+}
+
+export default { getPostById, getPosts, putPost, postPost, deletePost, addLike, removeLike }
