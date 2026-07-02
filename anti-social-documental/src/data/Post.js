@@ -1,15 +1,16 @@
 const listaPost = [
     {
         idUser:"pepe",
+        id:1,
         idPost:1,
         tags:[{
                 idTag:1,
-                nombre:"tag1",
+                nombre:"Atag1",
                 idPost:1
             },
             {
                 idTag:2,
-                nombre:"tag2",
+                nombre:"Btag2",
                 idPost:1
             }],
         nombre:"post",
@@ -22,19 +23,21 @@ const listaPost = [
                 idComentario:1,
                 contenido:"este comentario es el primero de prueba"
             }
-        ]
+        ],
+        fechaPublicacion:20
     },
         {
         idUser:"Luis",
+        id:2,        
         idPost:2,
         tags:[{
                 idTag:1,
-                nombre:"tag1",
+                nombre:"Atag1",
                 idPost:1
             },
             {
                 idTag:2,
-                nombre:"tag2",
+                nombre:"Btag2",
                 idPost:1
             }],
         nombre:"post",
@@ -52,18 +55,20 @@ const listaPost = [
                 idComentario:2,
                 contenido:"este comentario es el primero de prueba"
             }
-        ]
+        ],
+        fechaPublicacion:19        
     },{
         idUser:"Ramiro",
         idPost:3,
+        id:3,        
         tags:[{
                 idTag:3,
-                nombre:"tag3",
+                nombre:"Ctag3",
                 idPost:2
             },
             {
                 idTag:4,
-                nombre:"tag4",
+                nombre:"Dtag4",
                 idPost:2
             }],
         nombre:"post",
@@ -76,13 +81,15 @@ const listaPost = [
                 idComentario:1,
                 contenido:"este comentario es el primero de prueba"
             }
-        ]
+        ],
+                fechaPublicacion:18
     },{
         idUser:"pepe",
         idPost:10,
+        id:4,        
         tags:[{
                 idTag:5,
-                nombre:"tag5",
+                nombre:"Etag5",
                 idPost:10
             }],
         nombre:"post",
@@ -95,7 +102,8 @@ const listaPost = [
                 idComentario:1,
                 contenido:"este comentario es el primero de prueba"
             }
-        ]
+        ],
+        fechaPublicacion:17
     },
 
 
