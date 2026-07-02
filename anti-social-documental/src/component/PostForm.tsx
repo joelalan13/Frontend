@@ -5,7 +5,6 @@ import postServices from "../services/postServices";
 import postImageServices from "../services/postImageServices";
 import tagsServices from "../services/tagsServices";
 import type { Post } from "../types";
-// @ts-ignore: allow importing CSS without type declarations
 import "../styles/postForm.css";
 
 const PostForm = () => {
@@ -18,21 +17,25 @@ const PostForm = () => {
   const [tagsLoading, setTagsLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Cargar tags desde posts existentes
   useEffect(() => {
     const fetchTagsFromPosts = async () => {
       setTagsLoading(true);
       try {
         const posts = await postServices.getPosts();
         
-        // Extraer tags únicos de todos los posts
         const uniqueTags = new Set<string>();
+        const seenNormalized = new Set<string>();
+        
         posts.forEach((post: Post) => {
           if (post.tags && Array.isArray(post.tags)) {
             post.tags.forEach((tag: any) => {
               const tagName = typeof tag === 'string' ? tag : tag.nombre;
               if (tagName) {
-                uniqueTags.add(tagName);
+                const tagNormalized = tagName.toUpperCase();
+                if (!seenNormalized.has(tagNormalized)) {
+                  uniqueTags.add(tagName);
+                  seenNormalized.add(tagNormalized);
+                }
               }
             });
           }
@@ -41,7 +44,6 @@ const PostForm = () => {
         setTags(Array.from(uniqueTags).sort());
       } catch (err) {
         console.error("Error al cargar tags:", err);
-        // No mostrar error porque los tags son opcionales
         setTags([]);
       } finally {
         setTagsLoading(false);
@@ -88,7 +90,6 @@ const PostForm = () => {
     try {
       const usuario = JSON.parse(localStorage.getItem('usuario') || '{}');
       
-      // 1. Crear el post
       const nuevoPost = await postServices.postPost({
         idUser: usuario._id,
         descripcion,
@@ -96,7 +97,6 @@ const PostForm = () => {
 
       const postId = nuevoPost.idPost;
 
-      // 2. Agregar imágenes si existen
       const urlsValidas = imageUrls.filter((url) => url.trim() !== "");
       if (urlsValidas.length > 0) {
         try {
@@ -110,7 +110,6 @@ const PostForm = () => {
         }
       }
 
-      // 3. Agregar tags si existen (convertir a mayúscula)
       if (selectedTags.length > 0) {
         for (const tagName of selectedTags) {
           try {
