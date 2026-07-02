@@ -149,18 +149,12 @@ const Comment = ({ comment, idPost, onCommentDeleted, onCommentUpdated }: Props)
   };
 
   return (
-    <article className="comment" style={{ position: "relative" }}>
+    <article className="comment">
       <button 
         className="comment__avatar"
         style={{
           backgroundColor: avatarColor,
-          border: "none",
-          cursor: "pointer",
-          padding: 0,
-          overflow: "hidden",
           backgroundImage: getProfileImageUrl() ? `url(${getProfileImageUrl()})` : 'none',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center'
         }}
         onClick={handleUserClick}
         onError={() => setProfileImageError(true)}
@@ -173,7 +167,6 @@ const Comment = ({ comment, idPost, onCommentDeleted, onCommentUpdated }: Props)
         <div className="comment__header">
           <span 
             className="comment__user"
-            style={{ cursor: "pointer" }}
             onClick={handleUserClick}
             title="Ver perfil"
           >
@@ -185,72 +178,28 @@ const Comment = ({ comment, idPost, onCommentDeleted, onCommentUpdated }: Props)
           </span>
 
           {isOwnComment && (
-            <div style={{ position: "relative", marginLeft: "auto" }}>
+            <div style={{ position: "relative" }}>
               <button
+                className="comment__menu-btn"
                 onClick={() => setShowMenu(!showMenu)}
-                style={{
-                  backgroundColor: "transparent",
-                  border: "none",
-                  color: "#999",
-                  cursor: "pointer",
-                  padding: "4px 8px",
-                  fontSize: "12px"
-                }}
                 title="Más opciones"
               >
                 •••
               </button>
 
               {showMenu && (
-                <div style={{
-                  position: "absolute",
-                  right: 0,
-                  top: "100%",
-                  backgroundColor: "#1a1a1a",
-                  border: "1px solid #333",
-                  borderRadius: "4px",
-                  minWidth: "120px",
-                  zIndex: 10
-                }}>
+                <div className="comment__menu">
                   <button
+                    className="comment__menu-item"
                     onClick={() => setEditing(true)}
-                    style={{
-                      width: "100%",
-                      padding: "8px",
-                      border: "none",
-                      backgroundColor: "transparent",
-                      color: "#ffb700",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      fontSize: "13px",
-                      transition: "background-color 0.2s"
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#2a2a2a"}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
                   >
                     <Edit2 size={14} />
                     Editar
                   </button>
                   <button
+                    className="comment__menu-item comment__menu-item--delete"
                     onClick={handleDeleteComment}
                     disabled={deleting}
-                    style={{
-                      width: "100%",
-                      padding: "8px",
-                      border: "none",
-                      backgroundColor: "transparent",
-                      color: "#ff6b6b",
-                      cursor: deleting ? "not-allowed" : "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                      fontSize: "13px",
-                      transition: "background-color 0.2s"
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#2a2a2a"}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
                   >
                     <Trash2 size={14} />
                     {deleting ? "Eliminando..." : "Eliminar"}
@@ -262,62 +211,28 @@ const Comment = ({ comment, idPost, onCommentDeleted, onCommentUpdated }: Props)
         </div>
 
         {editing ? (
-          <div style={{ marginTop: "10px" }}>
+          <div className="comment__editor">
             <textarea
+              className="comment__textarea"
               value={editingContent}
               onChange={(e) => setEditingContent(e.target.value)}
-              style={{
-                width: "100%",
-                minHeight: "60px",
-                padding: "8px",
-                backgroundColor: "#222",
-                color: "#fff",
-                border: "1px solid #333",
-                borderRadius: "4px",
-                fontFamily: "inherit",
-                fontSize: "13px",
-                resize: "vertical"
-              }}
             />
-            <div style={{ marginTop: "8px", display: "flex", gap: "8px" }}>
+            <div className="comment__editor-buttons">
               <button
+                className="comment__btn-save"
                 onClick={handleSaveEdit}
                 disabled={saving}
-                style={{
-                  padding: "6px 12px",
-                  backgroundColor: "#00ff00",
-                  color: "#000",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: saving ? "not-allowed" : "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                  fontSize: "12px",
-                  fontWeight: "bold"
-                }}
               >
                 <Check size={14} />
                 {saving ? "Guardando..." : "Guardar"}
               </button>
               <button
+                className="comment__btn-cancel"
                 onClick={() => {
                   setEditing(false);
                   setEditingContent(comment.contenido);
                 }}
                 disabled={saving}
-                style={{
-                  padding: "6px 12px",
-                  backgroundColor: "#333",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                  fontSize: "12px"
-                }}
               >
                 <X size={14} />
                 Cancelar
