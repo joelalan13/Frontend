@@ -1,0 +1,20 @@
+/* Estilo para el fondo del Carrusel */
+.carousel-inner {
+    background-color: #9ea7b1; /* Gris muy claro */
+    border-radius: 8px;
+}
+
+/* Hacer las flechas más visibles con un fondo oscuro sutil */
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    background-color: rgba(0, 0, 0, 0.5); /* Fondo oscuro semitransparente */
+    border-radius: 50%;
+    padding: 10px;
+}
+
+/* Ajuste del contenedor del carrusel en el Modal */
+.carousel {
+    background-color: #9ea7b1; /* Un gris un poco más marcado */
+    padding: 5px;
+    border-radius: 8px;
+}

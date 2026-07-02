@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Container, Row, Col, Card, Button, Spinner, Alert, Tab, Tabs, Image, Modal } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Spinner, Alert, Tab, Tabs, Image, Modal, Carousel } from 'react-bootstrap';
 import { Camera, Eye, Users } from 'lucide-react';
 
 import ButtonScrollPerfil from '../component/ButtonScrollPerfil';
+// @ts-ignore: allow importing CSS without type declarations
+import '../styles/carrusel.css';
 
 type PostImage = {
     _id?: string;
@@ -27,8 +29,10 @@ type Post = {
 const Perfil = () => {
     const [user, setUser] = useState<{ _id: string; nickName: string; nombre: string; apellido: string; fotoPerfil?: string; followers: any[]; following: any[] } | null>(null);
     const [mostrarImagenes, setMostrarImagenes] = useState(true);
-    const [selectedPost, setSelectedPost] = useState<any>(null);
+    const [selectedPost, setSelectedPost] = useState<Post | null>(null);
     const [showModal, setShowModal] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(0);
+    const [commentAuthors, setCommentAuthors] = useState<Record<string, string>>({});
     const [isChecking, setIsChecking] = useState(true);
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
@@ -67,6 +71,45 @@ const Perfil = () => {
 
         fetchPosts();
     }, [user]);
+
+    useEffect(() => {
+        const loadCommentAuthors = async () => {
+            if (!selectedPost?.Comments?.length) {
+                setCommentAuthors({});
+                return;
+            }
+
+            const authors: Record<string, string> = {};
+
+            for (const comment of selectedPost.Comments) {
+                const userRef = comment?.idUser;
+
+                if (userRef && typeof userRef === 'object') {
+                    const nick = userRef.nickName || userRef.nickname || userRef.userName || userRef.nombre || 'Usuario';
+                    if (userRef._id) authors[userRef._id] = nick;
+                    continue;
+                }
+
+                if (typeof userRef === 'string' && userRef) {
+                    if (authors[userRef]) continue;
+
+                    try {
+                        const response = await axios.get(`http://localhost:8080/usuario/${userRef}`);
+                        const userData = response.data;
+                        const nick = userData?.nickName || userData?.nickname || userData?.userName || userData?.nombre || 'Usuario';
+                        authors[userRef] = nick;
+                    } catch (error) {
+                        console.error('No se pudo cargar el usuario del comentario', error);
+                        authors[userRef] = 'Usuario';
+                    }
+                }
+            }
+
+            setCommentAuthors(authors);
+        };
+
+        loadCommentAuthors();
+    }, [selectedPost]);
 
     if (isChecking) {
         return <Spinner animation="border" className="mt-5" />;
@@ -120,9 +163,24 @@ const Perfil = () => {
         }
     };
 
-    const handleVerDetalle = (post: any) => {
-    setSelectedPost(post);
-    setShowModal(true);
+    const handleVerDetalle = (post: Post) => {
+        setSelectedPost(post);
+        setActiveIndex(0);
+        setShowModal(true);
+    };
+
+    const getCommentAuthorName = (comment: any) => {
+        const userRef = comment?.idUser;
+
+        if (userRef && typeof userRef === 'object') {
+            return userRef.nickName || userRef.nickname || userRef.userName || userRef.nombre || 'Usuario';
+        }
+
+        if (typeof userRef === 'string' && userRef) {
+            return comment?.nickName || comment?.usuario?.nickName || commentAuthors[userRef] || 'Usuario';
+        }
+
+        return 'Usuario';
     };
     
     return (
@@ -167,17 +225,21 @@ const Perfil = () => {
             {/* Pestañas de Posts */}
             <ButtonScrollPerfil activo={mostrarImagenes} setActivo={setMostrarImagenes} />
 
-            <Row className="mt-4">
+            <Row className="mt-4 g-3">
                 {mostrarImagenes ? (
-                    // MODO IMÁGENES
                     postsConImagen.map(post => (
                         <Col md={4} key={post._id}>
-                            <Card className="mb-3 shadow-sm" style={{ cursor: 'pointer' }} onClick={() => handleVerDetalle(post)}>
+                            <Card className="h-100 shadow-sm" style={{ cursor: 'pointer' }} onClick={() => handleVerDetalle(post)}>
                                 <Card.Img 
                                     variant="top" 
                                     src={`http://localhost:8080${post.images?.[0]?.url}`} 
-                                    style={{ height: '200px', objectFit: 'cover' }}
+                                    style={{ height: '220px', objectFit: 'cover' }}
                                 />
+                                {post.images && post.images.length > 1 && (
+                                    <Card.Footer className="text-muted small">
+                                        {post.images.length} imágenes
+                                    </Card.Footer>
+                                )}
                             </Card>
                         </Col>
                     ))
@@ -185,7 +247,17 @@ const Perfil = () => {
                     // MODO TEXTO (Estilo Twitter)
                     postsSinImagen.map(post => (
                         <Col md={12} key={post._id} className="d-flex justify-content-center">
-                            <Card className="mb-3 p-3 border-0 shadow-sm" style={{ width: '100%', maxWidth: '600px', borderRadius: '12px' }}>
+                            <Card 
+                                className="mb-3 p-3 border-0 shadow-sm" 
+                                style={{ 
+                                    width: '100%', 
+                                    maxWidth: '600px', 
+                                    borderRadius: '12px',
+                                    backgroundColor: '#9ea7b1',
+                                    cursor: 'pointer'
+                                }}
+                                onClick={() => handleVerDetalle(post)}
+                            >
                                 <Card.Body>
                                     <Card.Text style={{ fontSize: '1.1rem' }}>{post.descripcion}</Card.Text>
                                     <small className="text-muted">Publicado el: {new Date(post.createdAt || '').toLocaleDateString()}</small>
@@ -195,20 +267,46 @@ const Perfil = () => {
                     ))
                 )}
             </Row>
-            <Modal show={showModal} onHide={() => setShowModal(false)} size="lg">
+            <Modal show={showModal} onHide={() => setShowModal(false)} size="lg" >
                 <Modal.Header closeButton>
                     <Modal.Title>Detalle</Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
+                <Modal.Body >
                     <Row>
-                        <Col md={6}>
-                            <img src={`http://localhost:8080${selectedPost?.images?.[0]?.url}`} className="img-fluid rounded" />
+                        <Col md={7}>
+                            {selectedPost?.images && selectedPost.images.length > 0 ? (
+                                <Carousel activeIndex={activeIndex} onSelect={(index) => setActiveIndex(index)} interval={null}>
+                                    {selectedPost.images.map((image, index) => (
+                                        <Carousel.Item key={image._id || `${image.url}-${index}`}>
+                                            <img
+                                                src={`http://localhost:8080${image.url}`}
+                                                className="d-block w-100 rounded"
+                                                style={{ height: '420px', objectFit: 'cover' }}
+                                                alt={`Imagen ${index + 1}`}
+                                            />
+                                        </Carousel.Item>
+                                    ))}
+                                </Carousel>
+                            ) : (
+                                <div className="text-muted">No hay imágenes para mostrar.</div>
+                            )}
                         </Col>
-                        <Col md={6}>
+                        <Col md={5}>
                             <p>{selectedPost?.descripcion}</p>
                             <hr />
                             <h6>Comentarios</h6>
-                            {/* Si tienes una lista de comentarios, este es el lugar para mostrarla */}
+                            {selectedPost?.Comments && selectedPost.Comments.length > 0 ? (
+                                <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
+                                    {selectedPost.Comments.map((comment: any, index: number) => (
+                                        <div key={comment.idComment || comment._id || index} className="mb-3 p-2 border rounded bg-light">
+                                            <strong>{getCommentAuthorName(comment)}</strong>
+                                            <div>{comment.contenido || 'Sin texto'}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-muted">No hay comentarios aún.</div>
+                            )}
                         </Col>
                     </Row>
                 </Modal.Body>
