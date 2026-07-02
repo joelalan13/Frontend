@@ -29,6 +29,7 @@ const RegisterForm = () => {
       nickName: nickName,
       nombre: nombre, 
       apellido: apellido,
+      fotoPerfil: "https://i.ibb.co/0j1Z8kM/default-profile.png", // Valor por defecto
     });
 
     console.log("Usuario creado:", response.data);
