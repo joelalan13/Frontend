@@ -13,6 +13,7 @@ const Error404 = () =>{
                 alt="404 Not Found"
                 className="error-image"
             />
+            <p className="error-text">Página no encontrada</p>
         </Container>
     )   
 }
