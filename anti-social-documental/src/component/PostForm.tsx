@@ -5,6 +5,8 @@ import postServices from "../services/postServices";
 import postImageServices from "../services/postImageServices";
 import tagsServices from "../services/tagsServices";
 import type { Post } from "../types";
+
+// @ts-ignore: CSS module declaration not present in this project setup
 import "../styles/postForm.css";
 
 const PostForm = () => {
@@ -94,16 +96,18 @@ const PostForm = () => {
         idUser: usuario._id,
         descripcion,
       });
+     
+      if (!nuevoPost?.idPost && !nuevoPost?._id) {
+        throw new Error('No se encontro el id');
+      }
 
-      const postId = nuevoPost.idPost;
+      const postId: string = (nuevoPost.idPost ?? nuevoPost._id) as string;
 
       const urlsValidas = imageUrls.filter((url) => url.trim() !== "");
       if (urlsValidas.length > 0) {
         try {
           await postImageServices.postImage(
-            { urlImages: urlsValidas },
-            postId
-          );
+            { urlImages: urlsValidas },postId);
           console.log("Imágenes agregadas:", urlsValidas);
         } catch (imgErr) {
           console.error("Error al agregar imágenes:", imgErr);

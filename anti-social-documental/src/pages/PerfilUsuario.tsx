@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { Container, Row, Col, Spinner } from 'react-bootstrap';
 import { filterRecentPosts } from '../utils/dateFilters';
+import { API_URL } from '../constants';
 
 import ButtonScrollPerfil from '../component/ButtonScrollPerfil';
 import ProfileHeader from '../component/ProfileHeader';
@@ -10,7 +11,6 @@ import ProfilePostImageCard from '../component/ProfilePostImageCard';
 import ProfilePostTextCard from '../component/ProfilePostTextCard';
 import ProfilePostDetailModal from '../component/ProfilePostDetailModal';
 import usuarioServices from "../services/usuarioServices";
-// @ts-ignore: allow importing CSS without type declarations
 import '../styles/profileStyles.css';
 
 type PostImage = {
@@ -35,7 +35,6 @@ const PerfilUsuario = () => {
     const { userId } = useParams<{ userId: string }>();
     const navigate = useNavigate();
 
-    // Estado principal del perfil
     const [user, setUser] = useState<{ _id: string; idUser?: string; nickName: string; nombre: string; apellido: string; fotoPerfil?: string; followers: any; following: any } | null>(null);
     const [currentUser, setCurrentUser] = useState<any>(null);
     const [mostrarImagenes, setMostrarImagenes] = useState(true);
@@ -52,7 +51,6 @@ const PerfilUsuario = () => {
     const [followLoading, setFollowLoading] = useState(false);
     const [isOwnProfile, setIsOwnProfile] = useState(false);
 
-    // Helpers de normalización y conteo de relaciones
     const getRelationshipItems = (value: any) => {
         if (Array.isArray(value)) return value;
         if (value && typeof value === 'object') {
@@ -93,16 +91,14 @@ const PerfilUsuario = () => {
     const getProfileImageSrc = (fotoPerfil?: string) => {
         if (!fotoPerfil || profileImageError) return 'https://via.placeholder.com/150';
         if (fotoPerfil.startsWith('http://') || fotoPerfil.startsWith('https://')) return fotoPerfil;
-        if (fotoPerfil.startsWith('/')) return `http://localhost:8080${fotoPerfil}`;
-        return `http://localhost:8080/${fotoPerfil}`;
+        if (fotoPerfil.startsWith('/')) return `${API_URL}${fotoPerfil}`;
+        return `${API_URL}/${fotoPerfil}`;
     };
 
-    // Efecto: resetear la imagen de perfil cuando cambia el usuario
     useEffect(() => {
         setProfileImageError(false);
     }, [user?._id, user?.fotoPerfil]);
 
-    // Efecto: cargar usuario autenticado desde localStorage
     useEffect(() => {
         const storedUser = localStorage.getItem('usuario');
         if (storedUser) {
@@ -111,7 +107,6 @@ const PerfilUsuario = () => {
         }
     }, []);
 
-    // Efecto: cargar el usuario consultado
     useEffect(() => {
         if (!userId) {
             navigate('/');
@@ -124,19 +119,16 @@ const PerfilUsuario = () => {
                 const userData = await usuarioServices.getUserProfileById(userId);
                 setUser(normalizeUserData(userData));
 
-                // Verificar si es el perfil propio
                 if (currentUser && (userData._id === currentUser._id || userData._id === currentUser.idUser)) {
                     setIsOwnProfile(true);
                 } else {
                     setIsOwnProfile(false);
-                    // Verificar si estamos siguiendo a este usuario
                     if (currentUser) {
                         const following = isFollowingThisUser(userData._id);
                         setIsFollowing(following);
                     }
                 }
             } catch (err) {
-                console.error('Error al cargar perfil del usuario:', err);
             } finally {
                 setLoading(false);
             }
@@ -145,21 +137,18 @@ const PerfilUsuario = () => {
         fetchUserData();
     }, [userId, navigate, currentUser]);
 
-    // Efecto: cargar los posts del usuario consultado
     useEffect(() => {
         if (!user) return;
 
         const fetchUserPosts = async () => {
             try {
-                const response = await axios.get(`http://localhost:8080/posts`);
-                // Filtrar solo posts del usuario consultado y de menos de 6 meses
+                const response = await axios.get(`${API_URL}/posts`);
                 const userPosts = Array.isArray(response.data)
                     ? response.data.filter((post) => post.idUser === user._id || post.idUser === user.idUser)
                     : [];
                 const recentUserPosts = filterRecentPosts(userPosts);
                 setPosts(recentUserPosts);
             } catch (err) {
-                console.error('Error al cargar posts:', err);
             }
         };
 
@@ -232,12 +221,11 @@ const PerfilUsuario = () => {
                     if (authors[userRef]) continue;
 
                     try {
-                        const response = await axios.get(`http://localhost:8080/usuario/${userRef}`);
+                        const response = await axios.get(`${API_URL}/usuario/${userRef}`);
                         const userData = response.data;
                         const nick = userData?.nickName || userData?.nickname || userData?.userName || userData?.nombre || 'Usuario';
                         authors[userRef] = nick;
                     } catch (error) {
-                        console.error('No se pudo cargar el usuario del comentario', error);
                         authors[userRef] = 'Usuario';
                     }
                 }
@@ -286,7 +274,6 @@ const PerfilUsuario = () => {
                 await usuarioServices.unfollowUser(currentUser._id, user._id);
                 setIsFollowing(false);
                 
-                // Actualizar currentUser en localStorage
                 const updatedCurrentUser = {
                     ...currentUser,
                     following: (currentUser.following || []).filter((item: any) => {
@@ -300,7 +287,6 @@ const PerfilUsuario = () => {
                 await usuarioServices.followUser(currentUser._id, user._id);
                 setIsFollowing(true);
                 
-                // Actualizar currentUser en localStorage
                 const updatedCurrentUser = {
                     ...currentUser,
                     following: [...(currentUser.following || []), user._id]
@@ -309,7 +295,6 @@ const PerfilUsuario = () => {
                 setCurrentUser(updatedCurrentUser);
             }
         } catch (error) {
-            console.error('Error al seguir/dejar de seguir', error);
             alert('No se pudo completar la acción.');
         } finally {
             setFollowLoading(false);
@@ -355,7 +340,6 @@ const PerfilUsuario = () => {
         return <Container><p>Usuario no encontrado</p></Container>;
     }
 
-    // Separación de posts por tipo para la vista del perfil
     const postsConImagen = posts.filter(p => p.images && p.images.length > 0);
     const postsSinImagen = posts.filter(p => !p.images || p.images.length === 0);
 
@@ -377,7 +361,6 @@ const PerfilUsuario = () => {
                 isOtherUserProfile={!isOwnProfile}
             />
 
-            {/* Pestañas de Posts */}
             <ButtonScrollPerfil activo={mostrarImagenes} setActivo={setMostrarImagenes} />
 
             <Row className="mt-4 g-3">
