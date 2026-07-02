@@ -18,11 +18,11 @@
 }
 
 .profile-post-modal .modal-header {
-  background-color: #080C09;
-  border-bottom: 1px solid var(--modal-border);
-  padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem; 
+    position: relative;
 }
-
 .profile-post-modal .modal-title {
   font-size: 1.25rem;
   font-weight: 600;
@@ -31,11 +31,11 @@
 }
 
 .profile-post-modal .btn-close {
-  filter: invert(1) brightness(1.2);
-  opacity: 0.7;
-  transition: opacity 0.2s;
+    margin: 0 !important; /* Quita márgenes por defecto de bootstrap */
+    background-color: #111812; /* Fondo oscuro para el botón de cerrar */
+    border: 1px solid var(--modal-border); /* Borde para diferenciarlo del fondo */
+    border-radius: 50%; /* Botón redondo */
 }
-
 .profile-post-modal .btn-close:hover {
   opacity: 1;
 }
@@ -55,14 +55,13 @@
 
 /* Columnas */
 .profile-post-modal .col-images {
-  flex: 0 0 40%;
+  flex: 0 0 60%; /* Aumentado de 40% a 60% */
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
-
 .profile-post-modal .col-content {
-  flex: 1;
+  flex: 1; /* Se ajustará automáticamente al espacio restante (40%) */
   display: flex;
   flex-direction: column;
   overflow: visible;
@@ -94,6 +93,8 @@
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   flex: 1;
+  display: flex; /* Asegura que el carrusel se expanda */
+  align-items: center; /* Centra verticalmente la imagen */
 }
 
 .profile-post-modal .carousel-item img {
@@ -300,6 +301,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.profile-post-modal .profile-post-modal__options {
+    position: static; 
+    margin-right: 10px; 
+    margin-left: auto; 
+}
+
+.profile-post-modal .more-options-menu__button {
+    padding: 8px; 
+    min-width: 35px;
+    min-height: 35px;
+    margin-right: 5px; 
+}
+
+.profile-post-modal .more-options-menu__dropdown {
+    right: 1.5rem; /* Ajuste para que el dropdown caiga bien desde la esquina */
+    z-index: 1060;
 }
 
 /* Responsive */

@@ -1,0 +1,68 @@
+.more-options-menu {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+}
+
+.more-options-menu__button {
+    background: #00d166;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #000;
+    padding: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    min-height: 40px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.more-options-menu__button:hover {
+    filter: brightness(0.95);
+}
+
+.more-options-menu__dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
+}
+
+.more-options-menu__item {
+    width: 100%;
+    text-align: left;
+    padding: 10px;
+    border: none;
+    background: transparent;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s ease;
+}
+
+.more-options-menu__item:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.more-options-menu__item--edit {
+    color: #ffb700;
+}
+
+.more-options-menu__item--delete {
+    color: #ff6b6b;
+}
+
+.more-options-menu__item--add-image {
+    color: #49c6d9;
+}

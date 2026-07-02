@@ -1,6 +1,7 @@
 import { Button, Image, Form } from 'react-bootstrap';
 import { Camera } from 'lucide-react';
 import { API_URL } from '../constants';
+// @ts-ignore: allow importing CSS without type declarations
 import '../styles/profileFormStyles.css';
 
 type ProfileHeaderProps = {

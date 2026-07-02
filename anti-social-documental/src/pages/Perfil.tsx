@@ -11,25 +11,23 @@ import ProfilePostImageCard from '../component/ProfilePostImageCard';
 import ProfilePostTextCard from '../component/ProfilePostTextCard';
 import ProfilePostDetailModal from '../component/ProfilePostDetailModal';
 import usuarioServices from "../services/usuarioServices";
+import postServices from '../services/postServices';
+import postImageServices from '../services/postImageServices';
+import type { Post, PostImage, Comment } from '../types';
 // @ts-ignore: allow importing CSS without type declarations
 import '../styles/profileStyles.css';
 
-type PostImage = {
-    _id?: string;
-    url: string;
-    createdAt?: string;
-    updatedAt?: string;
+type CommentUserRef = string | {
+    _id?: string
+    nickName?: string
+    nickname?: string
+    userName?: string
+    nombre?: string
+    apellido?: string
 };
 
-type Post = {
-    _id?: string;
-    idUser: string;
-    descripcion: string;
-    images?: PostImage[];
-    tags?: string[];
-    createdAt?: string;
-    updatedAt?: string;
-    Comments?: any[];
+const isCommentUserRefObject = (value: unknown): value is Exclude<Comment['idUser'], string> => {
+    return value !== null && typeof value === 'object';
 };
 
 const Perfil = () => {
@@ -127,7 +125,7 @@ const Perfil = () => {
                 const response = await axios.get(`${API_URL}/posts`);
                 // Filtrar solo posts del usuario actual y de menos de 6 meses
                 const userPosts = Array.isArray(response.data) 
-                    ? response.data.filter((post) => post.idUser === user._id || post.idUser === user.idUser)
+                    ? response.data.filter((post) => post.idUser === user._id)
                     : [];
                 const recentUserPosts = filterRecentPosts(userPosts);
                 setPosts(recentUserPosts);
@@ -228,7 +226,7 @@ const Perfil = () => {
             for (const comment of selectedPost.Comments) {
                 const userRef = comment?.idUser;
 
-                if (userRef && typeof userRef === 'object') {
+                if (isCommentUserRefObject(userRef)) {
                     const nick = userRef.nickName || userRef.nickname || userRef.userName || userRef.nombre || 'Usuario';
                     if (userRef._id) authors[userRef._id] = nick;
                     continue;
@@ -334,10 +332,116 @@ const Perfil = () => {
         setShowModal(true);
     };
 
-    const getCommentAuthorName = (comment: any) => {
+    const handleOpenEditModal = (post: Post) => {
+        const postId = post._id;
+        if (!postId) {
+            alert("No se pudo identificar el post para editar.");
+            return;
+        }
+
+        const newDescription = window.prompt("Editar descripción del post:", post.descripcion || "");
+        if (newDescription === null) {
+            return;
+        }
+
+        const trimmed = newDescription.trim();
+        if (!trimmed) {
+            alert("La descripción no puede estar vacía.");
+            return;
+        }
+
+        handlePostUpdated(postId, trimmed);
+    };
+
+    const handlePostDeleted = async (postId: string) => {
+        if (!postId) {
+            alert("No se pudo identificar el post para eliminar.");
+            return;
+        }
+
+        if (!window.confirm("¿Estás seguro de que quieres eliminar este post?")) {
+            return;
+        }
+
+        try {
+            await postServices.deletePost(postId);
+            alert("Post eliminado exitosamente");
+            setPosts((prevPosts) => prevPosts.filter((post) => post._id !== postId));
+            if (selectedPost && (selectedPost._id === postId)) {
+                setShowModal(false);
+            }
+        } catch (error) {
+            console.error("Error al eliminar post:", error);
+            alert("Error al eliminar el post");
+        }
+    };
+
+    const handlePostUpdated = async (postId: string, description: string) => {
+        try {
+            await postServices.putPost({ idUser: user._id || selectedPost?.idUser || "", descripcion: description }, postId);
+            alert("Post actualizado exitosamente");
+            setPosts((prevPosts) => prevPosts.map((post) => {
+                if (post._id === postId) {
+                    return { ...post, descripcion: description };
+                }
+                return post;
+            }));
+            setSelectedPost((prev) => prev && ((prev._id === postId) ? { ...prev, descripcion: description } : prev));
+        } catch (error) {
+            console.error("Error al actualizar post:", error);
+            alert("Error al editar el post");
+        }
+    };
+
+    const handlePostAddImage = async (postId: string, imageUrl: string) => {
+        try {
+            const nuevasImagenes = await postImageServices.postImage({ urlImages: [imageUrl] }, postId);
+            if (nuevasImagenes && nuevasImagenes.length > 0) {
+                setPosts((prevPosts) => prevPosts.map((post: Post) => {
+                    if (post._id === postId) {
+                        return { ...post, images: [...(post.images || []), ...nuevasImagenes] };
+                    }
+                    return post;
+                }));
+
+                setSelectedPost((prev) => prev && ((prev._id === postId)
+                    ? { ...prev, images: [...(prev.images || []), ...nuevasImagenes] }
+                    : prev));
+            }
+            return nuevasImagenes[0] || null;
+        } catch (error) {
+            console.error('Error al agregar imagen:', error);
+            alert('No se pudo agregar la imagen.');
+            return null;
+        }
+    };
+
+    const handlePostDeleteImage = async (postId: string, imageId: string) => {
+        try {
+            await postImageServices.deleteImageDePost(postId, imageId);
+            setPosts((prevPosts) => prevPosts.map((post: Post) => {
+                if (post._id === postId) {
+                    return { ...post, images: (post.images || []).filter((img) => img._id !== imageId) };
+                }
+                return post;
+            }));
+
+            setSelectedPost((prev) => prev && ((prev._id === postId)
+                ? { ...prev, images: (prev.images || []).filter((img) => img._id !== imageId) }
+                : prev));
+
+            return true;
+        } catch (error) {
+            console.error('Error al eliminar imagen:', error);
+            alert('No se pudo eliminar la imagen.');
+            return false;
+        }
+    };
+
+    const getCommentAuthorName = (comment: Comment) => {
         const userRef = comment?.idUser;
 
-        if (userRef && typeof userRef === 'object') {
+        if (isCommentUserRefObject(userRef)) {
             return userRef.nickName || userRef.nickname || userRef.userName || userRef.nombre || 'Usuario';
         }
 
@@ -437,6 +541,8 @@ const Perfil = () => {
 
         return [];
     };
+
+    const getPostTagsForModal = (post: any): Array<string | { nombre: string }> => getPostTags(post);
     
     // Render del perfil
     return (
@@ -466,13 +572,26 @@ const Perfil = () => {
                 {mostrarImagenes ? (
                     postsConImagen.map(post => (
                         <Col md={4} key={post._id}>
-                            <ProfilePostImageCard post={post} onClick={() => handleVerDetalle(post)} />
+                            <ProfilePostImageCard
+                                post={post as any}
+                                onClick={() => handleVerDetalle(post)}
+                                isOwnPost={true}
+                                onEdit={() => handleOpenEditModal(post)}
+                                onDelete={() => handlePostDeleted(post._id || '')}
+                            />
                         </Col>
                     ))
                 ) : (
                     postsSinImagen.map(post => (
                         <Col md={12} key={post._id} className="d-flex justify-content-center">
-                            <ProfilePostTextCard post={post} onClick={() => handleVerDetalle(post)} getPostTags={getPostTags} />
+                            <ProfilePostTextCard
+                                post={post as any}
+                                onClick={() => handleVerDetalle(post)}
+                                getPostTags={getPostTags}
+                                isOwnPost={true}
+                                onEdit={() => handleOpenEditModal(post)}
+                                onDelete={() => handlePostDeleted(post._id || '')}
+                            />
                         </Col>
                     ))
                 )}
@@ -485,6 +604,11 @@ const Perfil = () => {
                 onSelect={(index) => setActiveIndex(index)}
                 getPostTags={getPostTags}
                 getCommentAuthorName={getCommentAuthorName}
+                isOwnPost={true}
+                onEditDescription={handlePostUpdated}
+                onAddImage={handlePostAddImage}
+                onDeleteImage={handlePostDeleteImage}
+                onDeletePost={handlePostDeleted}
             />
         </Container>
     );

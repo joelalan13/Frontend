@@ -1,4 +1,15 @@
 // URL y configuración de API
+declare global {
+  interface ImportMetaEnv {
+    readonly VITE_API_URL?: string
+    readonly VITE_API_TIMEOUT?: string
+  }
+
+  interface ImportMeta {
+    readonly env: ImportMetaEnv
+  }
+}
+
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
 export const API_TIMEOUT = import.meta.env.VITE_API_TIMEOUT || 30000
 

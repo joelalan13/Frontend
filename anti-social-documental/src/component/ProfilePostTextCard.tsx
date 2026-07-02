@@ -1,4 +1,7 @@
 import { Card } from 'react-bootstrap';
+import { Trash2, Edit2 } from 'lucide-react';
+import MoreOptionsMenu from './MoreOptionsMenu';
+// @ts-ignore: allow importing CSS without type declarations
 import '../styles/profilePostCards.css';
 
 type PostImage = {
@@ -10,6 +13,7 @@ type PostImage = {
 
 type Post = {
     _id?: string;
+    idPost?: string;
     idUser: string;
     descripcion: string;
     images?: PostImage[];
@@ -23,14 +27,38 @@ type ProfilePostTextCardProps = {
     post: Post;
     onClick: () => void;
     getPostTags: (post: Post | null | undefined) => string[];
+    isOwnPost?: boolean;
+    onEdit?: () => void;
+    onDelete?: () => void;
 };
 
-const ProfilePostTextCard = ({ post, onClick, getPostTags }: ProfilePostTextCardProps) => {
+const ProfilePostTextCard = ({ post, onClick, getPostTags, isOwnPost = false, onEdit, onDelete }: ProfilePostTextCardProps) => {
     return (
         <Card
             className="profile-post-text-card"
+            style={{ position: 'relative', cursor: 'pointer', overflow: 'visible' }}
             onClick={onClick}
         >
+            {isOwnPost && (
+                <MoreOptionsMenu
+                    className="profile-post-text-card__options"
+                    menuItems={[
+                        {
+                            label: 'Editar descripción',
+                            icon: <Edit2 size={16} />,
+                            onClick: () => onEdit?.(),
+                            className: 'more-options-menu__item--edit'
+                        },
+                        {
+                            label: 'Eliminar post',
+                            icon: <Trash2 size={16} />,
+                            onClick: () => onDelete?.(),
+                            className: 'more-options-menu__item--delete'
+                        }
+                    ]}
+                />
+            )}
+
             <Card.Body>
                 <Card.Text>
                     {post.descripcion}

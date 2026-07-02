@@ -9,8 +9,8 @@ import FeedPost from "../component/FeedPost"
 import postServices from "../services/postServices"
 
 const Inicio = () => {
-  const [posts, setPosts] = useState([])
-  const [filteredPosts, setFilteredPosts] = useState([])
+  const [posts, setPosts] = useState<any[]>([])
+  const [filteredPosts, setFilteredPosts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [refreshTrigger, setRefreshTrigger] = useState(0)
@@ -55,7 +55,7 @@ const Inicio = () => {
     const tagSet = new Set<string>()
     posts.forEach(post => {
       if ((post as any).tags && Array.isArray((post as any).tags)) {
-        (post as any).tags.forEach(tag => {
+        (post as any).tags.forEach((tag: any) => {
           const tagName = typeof tag === 'string' ? tag : (tag as any).nombre
           if (tagName) tagSet.add(tagName)
         })
