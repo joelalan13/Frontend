@@ -11,6 +11,7 @@ import Login from "./component/Login"
 import Register from "./component/RegisterForm"
 import NewPost from "./pages/NewPost"
 import PostDetails from "./pages/PostDetails"
+import Error404 from "./pages/Error404"
 import { ROUTES } from "./constants"
 
 type Screen = "home" | "login" | "register" | "profile" | "create" | "post"
@@ -77,6 +78,9 @@ function App() {
             </ProtectedRoute>
           } 
         />
+        
+        {/* Ruta 404 */}
+        <Route path="/notFound" element={<Error404 />} />
       </Routes>
     </div>
   )
