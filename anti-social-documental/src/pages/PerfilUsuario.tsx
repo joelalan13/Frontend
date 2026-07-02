@@ -339,7 +339,29 @@ const PerfilUsuario = () => {
     }
 
     if (!user) {
-        return <Container><p>Usuario no encontrado</p></Container>;
+        return (
+            <Container className="mt-5 text-center">
+                <p style={{ color: '#00D166', fontSize: '1.5rem', marginTop: '2rem' }}>
+                    Usuario no encontrado
+                </p>
+                <button
+                    onClick={() => navigate('/')}
+                    style={{
+                        marginTop: '1rem',
+                        padding: '10px 20px',
+                        backgroundColor: '#00D166',
+                        color: '#030A04',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '1rem',
+                        fontWeight: 'bold'
+                    }}
+                >
+                    Volver al inicio
+                </button>
+            </Container>
+        );
     }
 
     const postsConImagen = posts.filter(p => p.images && p.images.length > 0);
