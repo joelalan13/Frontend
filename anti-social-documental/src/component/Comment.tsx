@@ -6,6 +6,7 @@ import usuarioServices from "../services/usuarioServices";
 import commentServices from "../services/commentServices";
 import { getAvatarColor } from "../utils/getAvatarColor";
 import { API_URL } from "../constants";
+// @ts-ignore: CSS module import handled by bundler
 import "../styles/comment.css";
 
 type Props = {
@@ -93,7 +94,13 @@ const Comment = ({ comment, idPost, onCommentDeleted, onCommentUpdated }: Props)
 
     setDeleting(true);
     try {
-      await commentServices.deleteComentario(idPost, comment._id || comment.idComment);
+      const commentId = comment._id || comment.idComment;
+      if (!commentId) {
+        alert("Error: No se puede eliminar el comentario");
+        setDeleting(false);
+        return;
+      }
+      await commentServices.deleteComentario(idPost, commentId);
       alert("Comentario eliminado exitosamente");
       setShowMenu(false);
       if (onCommentDeleted) {
@@ -117,9 +124,15 @@ const Comment = ({ comment, idPost, onCommentDeleted, onCommentUpdated }: Props)
       return;
     }
 
+    const commentId = comment._id || comment.idComment;
+    if (!commentId) {
+      alert("Error: No se puede editar el comentario");
+      return;
+    }
+
     setSaving(true);
     try {
-      await commentServices.putComentario(editingContent, idPost, comment._id || comment.idComment);
+      await commentServices.putComentario(editingContent, idPost, commentId);
       alert("Comentario actualizado exitosamente");
       setEditing(false);
       setShowMenu(false);
