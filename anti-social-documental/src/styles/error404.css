@@ -1,0 +1,22 @@
+.error404-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 70vh;
+    padding: 2rem;
+}
+
+.error-image {
+    width: min(80vw, 400px);
+    height: auto;
+    margin-bottom: 2rem;
+}
+
+.error-text {
+    color: #00D166;
+    font-size: 1.5rem;
+    font-weight: 500;
+    margin: 0;
+    letter-spacing: 0.5px;
+}
