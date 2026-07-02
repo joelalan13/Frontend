@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Container, Row, Col, Card, Button, Spinner, Alert, Tab, Tabs, Image, Modal, Carousel } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Spinner, Alert, Tab, Tabs, Image, Modal, Carousel, Form } from 'react-bootstrap';
 import { Camera, Eye, Users } from 'lucide-react';
 
 import ButtonScrollPerfil from '../component/ButtonScrollPerfil';
+import usuarioServices from '../assets/services/usuarioServices';
 // @ts-ignore: allow importing CSS without type declarations
 import '../styles/carrusel.css';
 
@@ -20,7 +21,7 @@ type Post = {
     idUser: string;
     descripcion: string;
     images?: PostImage[];
-    Tags?: string[];
+    tags?: string[];
     createdAt?: string;
     updatedAt?: string;
     Comments?: any[];
@@ -33,9 +34,15 @@ const Perfil = () => {
     const [showModal, setShowModal] = useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
     const [commentAuthors, setCommentAuthors] = useState<Record<string, string>>({});
+    const [targetUserId, setTargetUserId] = useState('');
+    const [targetUserInfo, setTargetUserInfo] = useState<{ _id?: string; nickName?: string; nombre?: string } | null>(null);
+    const [isFollowingTarget, setIsFollowingTarget] = useState(false);
+    const [followLoading, setFollowLoading] = useState(false);
     const [isChecking, setIsChecking] = useState(true);
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
+    const [followersDetails, setFollowersDetails] = useState<{ id: string; label: string }[]>([]);
+    const [followingDetails, setFollowingDetails] = useState<{ id: string; label: string }[]>([]);
     const navigate = useNavigate();
 
     // Primer useEffect: Carga el usuario
@@ -71,6 +78,71 @@ const Perfil = () => {
 
         fetchPosts();
     }, [user]);
+
+    useEffect(() => {
+        if (!targetUserId || !user?._id || targetUserId === user._id) {
+            setTargetUserInfo(null);
+            setIsFollowingTarget(false);
+            return;
+        }
+
+        const syncTargetUser = async () => {
+            setIsFollowingTarget(isFollowingThisUser(targetUserId));
+            try {
+                const profile = await usuarioServices.getUserProfileById(targetUserId);
+                setTargetUserInfo(profile);
+            } catch (error) {
+                console.error('No se pudo cargar el usuario objetivo', error);
+                setTargetUserInfo(null);
+            }
+        };
+
+        syncTargetUser();
+    }, [targetUserId, user?._id, user?.following]);
+
+    useEffect(() => {
+        if (!user) {
+            setFollowersDetails([]);
+            setFollowingDetails([]);
+            return;
+        }
+
+        const loadRelationshipUsers = async () => {
+            const normalizeRelationships = async (items: any[]) => {
+                const resolved = await Promise.all(items.map(async (item) => {
+                    if (item && typeof item === 'object') {
+                        const id = item._id || item.id || '';
+                        const label = item.nickName || item.nickname || item.userName || [item.nombre, item.apellido].filter(Boolean).join(' ') || 'Usuario';
+                        return { id, label };
+                    }
+
+                    if (typeof item === 'string' && item) {
+                        try {
+                            const profile = await usuarioServices.getUserProfileById(item);
+                            const label = profile?.nickName || [profile?.nombre, profile?.apellido].filter(Boolean).join(' ') || item;
+                            return { id: item, label };
+                        } catch {
+                            return { id: item, label: item };
+                        }
+                    }
+
+                    return { id: '', label: 'Usuario' };
+                }));
+
+                return resolved.filter((entry) => entry.id || entry.label !== 'Usuario');
+            };
+
+            const [followers, following] = await Promise.all([
+                normalizeRelationships(Array.isArray(user.followers) ? user.followers : []),
+                normalizeRelationships(Array.isArray(user.following) ? user.following : [])
+            ]);
+
+            setFollowersDetails(followers);
+            setFollowingDetails(following);
+        };
+
+        loadRelationshipUsers();
+    }, [user?._id, user?.followers, user?.following]);
 
     useEffect(() => {
         const loadCommentAuthors = async () => {
@@ -182,6 +254,84 @@ const Perfil = () => {
 
         return 'Usuario';
     };
+
+    const isFollowingThisUser = (targetId: string) => {
+        return (user?.following || []).some((item: any) => {
+            if (typeof item === 'string') return item === targetId;
+            return item?._id === targetId || item?.id === targetId;
+        });
+    };
+
+    const handleFollowToggle = async () => {
+        if (!user?._id || !targetUserId || targetUserId === user._id) return;
+
+        setFollowLoading(true);
+
+        try {
+            if (isFollowingTarget) {
+                await usuarioServices.unfollowUser(user._id, targetUserId);
+                const updatedFollowing = (user.following || []).filter((item: any) => {
+                    if (typeof item === 'string') return item !== targetUserId;
+                    return item?._id !== targetUserId && item?.id !== targetUserId;
+                });
+
+                const updatedUser = { ...user, following: updatedFollowing };
+                setUser(updatedUser);
+                localStorage.setItem('usuario', JSON.stringify(updatedUser));
+                setIsFollowingTarget(false);
+            } else {
+                await usuarioServices.followUser(user._id, targetUserId);
+                const updatedFollowing = [...(user.following || []), targetUserId];
+                const updatedUser = { ...user, following: updatedFollowing };
+                setUser(updatedUser);
+                localStorage.setItem('usuario', JSON.stringify(updatedUser));
+                setIsFollowingTarget(true);
+            }
+
+            try {
+                const profile = await usuarioServices.getUserProfileById(targetUserId);
+                setTargetUserInfo(profile);
+            } catch (error) {
+                console.error('No se pudo recargar el perfil del usuario objetivo', error);
+            }
+        } catch (error) {
+            console.error('Error al seguir/dejar de seguir', error);
+            alert('No se pudo completar la acción.');
+        } finally {
+            setFollowLoading(false);
+        }
+    };
+
+    const getPostTags = (post: Post | null | undefined) => {
+        const rawTags = (post as any)?.tags ?? (post as any)?.Tags ?? [];
+
+        if (Array.isArray(rawTags)) {
+            return rawTags.flatMap((tag: any) => {
+                if (typeof tag === 'string') {
+                    return tag
+                        .split(',')
+                        .map((item: string) => item.trim())
+                        .filter(Boolean);
+                }
+
+                if (tag && typeof tag === 'object') {
+                    const nombre = tag.nombre || tag.name || tag.text || tag.label || tag.tag || '';
+                    return nombre ? [nombre] : [];
+                }
+
+                return [];
+            });
+        }
+
+        if (typeof rawTags === 'string') {
+            return rawTags
+                .split(',')
+                .map((item: string) => item.trim())
+                .filter(Boolean);
+        }
+
+        return [];
+    };
     
     return (
         <Container className="mt-5 text-center">
@@ -216,9 +366,53 @@ const Perfil = () => {
                 <h2 className="mt-3">{user?.nickName}</h2>
                 <p className="text-muted">{user?.nombre} {user?.apellido}</p>
                 
-                <div className="d-flex gap-4">
-                    <span><strong>{user?.followers?.length || 0}</strong> Seguidores</span>
-                    <span><strong>{user?.following?.length || 0}</strong> Seguidos</span>
+                <div className="d-flex flex-wrap justify-content-center gap-3 mt-2">
+                    <div className="border rounded px-3 py-2" style={{ minWidth: '180px' }}>
+                        <div><strong>{user?.followers?.length || 0}</strong> Seguidores</div>
+                        <div className="small text-muted mt-1">
+                            {followersDetails.length > 0 ? (
+                                followersDetails.slice(0, 5).map((person) => (
+                                    <div key={person.id || person.label}>{person.label}</div>
+                                ))
+                            ) : (
+                                <span>No tienes seguidores todavía</span>
+                            )}
+                        </div>
+                    </div>
+                    <div className="border rounded px-3 py-2" style={{ minWidth: '180px' }}>
+                        <div><strong>{user?.following?.length || 0}</strong> Seguidos</div>
+                        <div className="small text-muted mt-1">
+                            {followingDetails.length > 0 ? (
+                                followingDetails.slice(0, 5).map((person) => (
+                                    <div key={person.id || person.label}>{person.label}</div>
+                                ))
+                            ) : (
+                                <span>No sigues a nadie todavía</span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="d-flex flex-column align-items-center gap-2 mt-3" style={{ maxWidth: '360px', width: '100%' }}>
+                    <div className="d-flex gap-2 w-100">
+                        <Form.Control
+                            size="sm"
+                            placeholder="ID del usuario a seguir"
+                            value={targetUserId}
+                            onChange={(e) => {
+                                setTargetUserId(e.target.value);
+                                setTargetUserInfo(null);
+                            }}
+                        />
+                        <Button size="sm" onClick={handleFollowToggle} disabled={followLoading || !targetUserId || targetUserId === user?._id}>
+                            {followLoading ? '...' : isFollowingTarget ? 'Dejar de seguir' : 'Seguir'}
+                        </Button>
+                    </div>
+                    {targetUserInfo && (
+                        <small className="text-muted">
+                            {targetUserInfo.nickName || targetUserInfo.nombre || 'Usuario objetivo'}
+                        </small>
+                    )}
                 </div>
             </div>
 
@@ -253,14 +447,34 @@ const Perfil = () => {
                                     width: '100%', 
                                     maxWidth: '600px', 
                                     borderRadius: '12px',
-                                    backgroundColor: '#9ea7b1',
+                                    backgroundColor: '#f8f9fa', // Gris claro solicitado
                                     cursor: 'pointer'
                                 }}
                                 onClick={() => handleVerDetalle(post)}
                             >
                                 <Card.Body>
-                                    <Card.Text style={{ fontSize: '1.1rem' }}>{post.descripcion}</Card.Text>
-                                    <small className="text-muted">Publicado el: {new Date(post.createdAt || '').toLocaleDateString()}</small>
+                                    <Card.Text style={{ fontSize: '1.1rem', marginBottom: '15px' }}>
+                                        {post.descripcion}
+                                    </Card.Text>
+
+                                    {/* AQUÍ ESTÁ LA LÓGICA DE TAGS */}
+                                    {getPostTags(post).length > 0 && (
+                                        <div className="d-flex flex-wrap mb-2">
+                                            {getPostTags(post).map((tag: any, index: number) => (
+                                                <span 
+                                                    key={`${tag}-${index}`} 
+                                                    className="badge bg-info text-dark me-2 mb-2"
+                                                    style={{ fontSize: '0.85rem', fontWeight: '500' }}
+                                                >
+                                                    #{tag}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                    
+                                    <small className="text-muted d-block mt-2">
+                                        Publicado el: {new Date(post.createdAt || '').toLocaleDateString()}
+                                    </small>
                                 </Card.Body>
                             </Card>
                         </Col>
@@ -293,6 +507,15 @@ const Perfil = () => {
                         </Col>
                         <Col md={5}>
                             <p>{selectedPost?.descripcion}</p>
+                            {getPostTags(selectedPost).length > 0 ? (
+                                <div className="mb-3">
+                                    {getPostTags(selectedPost).map((tag: any, index: number) => (
+                                        <span key={`${tag}-${index}`} className="badge bg-secondary me-2 mb-2">
+                                            #{typeof tag === 'string' ? tag : tag?.nombre || 'tag'}
+                                        </span>
+                                    ))}
+                                </div>
+                            ) : null}
                             <hr />
                             <h6>Comentarios</h6>
                             {selectedPost?.Comments && selectedPost.Comments.length > 0 ? (
