@@ -14,7 +14,7 @@ import PostDetails from "./pages/PostDetails"
 import Error404 from "./pages/Error404"
 import { ROUTES } from "./constants"
 
-type Screen = "home" | "login" | "register" | "profile" | "create" | "post"
+type Screen = "home" | "login" | "register" | "profile" | "create" | "post" | "notfound"
 
 function App() {
   const location = useLocation()
@@ -27,6 +27,7 @@ function App() {
     if (path === "/register") return "register"
     if (path === "/perfil") return "profile"
     if (path === "/newPost") return "create"
+    if (path === "/notFound") return "notfound"
     return "post"
   }, [location.pathname])
 
@@ -79,8 +80,8 @@ function App() {
           } 
         />
         
-        {/* Ruta 404 */}
-        <Route path="/notFound" element={<Error404 />} />
+        {/* Ruta 404 - Captura todas las rutas no definidas */}
+        <Route path="*" element={<Error404 />} />
       </Routes>
     </div>
   )
