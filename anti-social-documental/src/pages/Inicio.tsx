@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Row, Col, Container } from "react-bootstrap"
 import { API_URL } from "../constants"
 import { filterRecentPosts } from "../utils/dateFilters"
 
 import ButtonScroll from "../component/ButtonScroll"
+import TagFilterDropdown from "../component/TagFilterDropdown"
 import FeedPost from "../component/FeedPost"
 import postServices from "../services/postServices"
 
@@ -15,6 +16,7 @@ const Inicio = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const [showSuggestions, setShowSuggestions] = useState(true)
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [selectedFilterTags, setSelectedFilterTags] = useState<string[]>([])
 
   // Cargar usuario logeado desde localStorage
   useEffect(() => {
@@ -48,13 +50,26 @@ const Inicio = () => {
     fetchPosts()
   }, [refreshTrigger])
 
-  // Filtrar posts según la pestaña activa
+  // Extraer tags únicos de todos los posts
+  const availableTags = useMemo(() => {
+    const tagSet = new Set<string>()
+    posts.forEach(post => {
+      if ((post as any).tags && Array.isArray((post as any).tags)) {
+        (post as any).tags.forEach(tag => {
+          const tagName = typeof tag === 'string' ? tag : (tag as any).nombre
+          if (tagName) tagSet.add(tagName)
+        })
+      }
+    })
+    return Array.from(tagSet).sort()
+  }, [posts])
+
+  // Filtrar posts según la pestaña activa y tags seleccionados
   useEffect(() => {
-    if (showSuggestions) {
-      // Mostrar todos los posts
-      setFilteredPosts(posts)
-    } else {
-      // Mostrar solo posts de usuarios que el usuario logeado sigue
+    let filtered = posts
+
+    // Primero filtrar por pestaña (Todos/Seguidos)
+    if (!showSuggestions) {
       if (currentUser && currentUser.following) {
         const followingIds = Array.isArray(currentUser.following)
           ? currentUser.following.map((item: any) => {
@@ -63,15 +78,28 @@ const Inicio = () => {
             })
           : []
 
-        const filtered = posts.filter((post) => 
+        filtered = posts.filter((post) => 
           followingIds.includes(post.idUser)
         )
-        setFilteredPosts(filtered)
       } else {
-        setFilteredPosts([])
+        filtered = []
       }
     }
-  }, [showSuggestions, posts, currentUser])
+
+    // Luego filtrar por tags si están seleccionados (AND lógico)
+    if (selectedFilterTags.length > 0) {
+      filtered = filtered.filter(post => 
+        selectedFilterTags.every((selectedTag: string) =>
+          (post as any).tags?.some((tag: any) => {
+            const tagName = typeof tag === 'string' ? tag : tag.nombre
+            return tagName === selectedTag
+          })
+        )
+      )
+    }
+
+    setFilteredPosts(filtered)
+  }, [showSuggestions, posts, currentUser, selectedFilterTags])
 
   const handlePostUpdated = () => {
     setRefreshTrigger(prev => prev + 1)
@@ -88,6 +116,16 @@ const Inicio = () => {
     <Container fluid="md">
       <Row>
         <ButtonScroll onTabChange={setShowSuggestions} />
+      </Row>
+
+      <Row>
+        <Col className="mt-3">
+          <TagFilterDropdown 
+            tags={availableTags}
+            selectedTags={selectedFilterTags}
+            onTagSelect={setSelectedFilterTags}
+          />
+        </Col>
       </Row>
 
       <Row>

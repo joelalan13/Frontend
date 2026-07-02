@@ -626,3 +626,4 @@ const FeedPost = ({ dataPost, onPostDeleted, onPostUpdated }: FeedPostProps) => 
 }
 
 export default FeedPost
+

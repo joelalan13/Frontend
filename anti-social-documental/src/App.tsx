@@ -3,6 +3,7 @@ import { useMemo } from "react"
 
 import Header from "./component/Header"
 import Footer from "./component/Footer"
+import ProtectedRoute from "./component/ProtectedRoute"
 import Inicio from "./pages/Inicio"
 import Perfil from "./pages/Perfil"
 import PerfilUsuario from "./pages/PerfilUsuario"
@@ -32,19 +33,50 @@ function App() {
     localStorage.removeItem('usuario')
   }
 
-  const showHeader = !["login", "register"].includes(screen)
+  const showHeader = true
 
   return (
     <div>
       {showHeader && <Header screen={screen} onLogout={handleLogout} />}
       <Routes>
+        {/* Rutas públicas */}
         <Route path={ROUTES.HOME} element={<Inicio />} />
         <Route path={ROUTES.LOGIN} element={<Login />} />
         <Route path={ROUTES.REGISTER} element={<Register />} />
-        <Route path={ROUTES.PROFILE} element={<Perfil />} />
-        <Route path={ROUTES.PROFILE_USER} element={<PerfilUsuario />} />
-        <Route path={ROUTES.NEW_POST} element={<NewPost />} />
-        <Route path={ROUTES.POST_DETAILS} element={<PostDetails />} />
+        
+        {/* Rutas protegidas */}
+        <Route 
+          path={ROUTES.PROFILE} 
+          element={
+            <ProtectedRoute>
+              <Perfil />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path={ROUTES.PROFILE_USER} 
+          element={
+            <ProtectedRoute>
+              <PerfilUsuario />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path={ROUTES.NEW_POST} 
+          element={
+            <ProtectedRoute>
+              <NewPost />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path={ROUTES.POST_DETAILS} 
+          element={
+            <ProtectedRoute>
+              <PostDetails />
+            </ProtectedRoute>
+          } 
+        />
       </Routes>
     </div>
   )
