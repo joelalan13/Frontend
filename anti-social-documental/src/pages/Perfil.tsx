@@ -2,16 +2,17 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Container, Row, Col, Spinner } from 'react-bootstrap';
-
+import { filterRecentPosts } from '../utils/dateFilters';
+import { API_URL } from '../constants';
 
 import ButtonScrollPerfil from '../component/ButtonScrollPerfil';
 import ProfileHeader from '../component/ProfileHeader';
 import ProfilePostImageCard from '../component/ProfilePostImageCard';
 import ProfilePostTextCard from '../component/ProfilePostTextCard';
 import ProfilePostDetailModal from '../component/ProfilePostDetailModal';
-import usuarioServices from '../assets/services/usuarioServices';
+import usuarioServices from "../services/usuarioServices";
 // @ts-ignore: allow importing CSS without type declarations
-import '../styles/carrusel.css';
+import '../styles/profileStyles.css';
 
 type PostImage = {
     _id?: string;
@@ -92,8 +93,8 @@ const Perfil = () => {
     const getProfileImageSrc = (fotoPerfil?: string) => {
         if (!fotoPerfil || profileImageError) return 'https://via.placeholder.com/150';
         if (fotoPerfil.startsWith('http://') || fotoPerfil.startsWith('https://')) return fotoPerfil;
-        if (fotoPerfil.startsWith('/')) return `http://localhost:8080${fotoPerfil}`;
-        return `http://localhost:8080/${fotoPerfil}`;
+        if (fotoPerfil.startsWith('/')) return `${API_URL}${fotoPerfil}`;
+        return `${API_URL}/${fotoPerfil}`;
     };
 
     // Efecto: resetear la imagen de perfil cuando cambia el usuario
@@ -116,8 +117,6 @@ const Perfil = () => {
         setIsChecking(false); 
     }, [navigate]);
 
-    
-    
     // Efecto: cargar los posts del usuario autenticado
     useEffect(() => {
         if (!user) return;
@@ -125,8 +124,13 @@ const Perfil = () => {
         const fetchUserPosts = async () => {
             setLoading(true);
             try {
-                const response = await axios.get(`http://localhost:8080/posts?userId=${user._id}`);
-                setPosts(response.data);
+                const response = await axios.get(`${API_URL}/posts`);
+                // Filtrar solo posts del usuario actual y de menos de 6 meses
+                const userPosts = Array.isArray(response.data) 
+                    ? response.data.filter((post) => post.idUser === user._id || post.idUser === user.idUser)
+                    : [];
+                const recentUserPosts = filterRecentPosts(userPosts);
+                setPosts(recentUserPosts);
             } catch (err) {
                 console.error('Error al cargar posts:', err);
             } finally {
@@ -285,10 +289,10 @@ const Perfil = () => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        const storedUserRaw = localStorage.getItem('usuario'); // Obtiene el usuario almacenado en localStorage
-        const storedUser = storedUserRaw ? JSON.parse(storedUserRaw) : null; // Asegura que el usuario esté en el formato correcto
-        const currentUser = storedUser || user; // Usa el usuario almacenado o el estado actual
-        const userId = currentUser?._id || currentUser?.id; // Asegura que el ID del usuario esté definido
+        const storedUserRaw = localStorage.getItem('usuario');
+        const storedUser = storedUserRaw ? JSON.parse(storedUserRaw) : null;
+        const currentUser = storedUser || user;
+        const userId = currentUser?._id || currentUser?.id;
 
         if (!userId) {
             console.error("Error crítico: El ID del usuario es undefined");
@@ -301,11 +305,11 @@ const Perfil = () => {
 
         try {
             console.log("Subiendo foto de perfil para el usuario:", userId);
-            const response = await axios.put(`http://localhost:8080/usuario/${userId}`, formData, {
+            const response = await axios.put(`${API_URL}/usuario/${userId}`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
 
-            const updatedUserData = response.data?.usuario || response.data; // Asegura que se obtenga el usuario actualizado correctamente
+            const updatedUserData = response.data?.usuario || response.data;
             const normalizedUser = { 
                 ...currentUser,
                 ...updatedUserData,

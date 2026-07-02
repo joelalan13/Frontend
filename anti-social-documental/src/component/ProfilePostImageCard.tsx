@@ -1,4 +1,5 @@
 import { Card } from 'react-bootstrap';
+import '../styles/profilePostCards.css';
 
 type PostImage = {
     _id?: string;
@@ -25,14 +26,18 @@ type ProfilePostImageCardProps = {
 
 const ProfilePostImageCard = ({ post, onClick }: ProfilePostImageCardProps) => {
     return (
-        <Card className="h-100 shadow-sm" style={{ cursor: 'pointer' }} onClick={onClick}>
+        <Card 
+            className="profile-post-card h-100" 
+            style={{ cursor: 'pointer' }} 
+            onClick={onClick}
+        >
             <Card.Img
                 variant="top"
                 src={`http://localhost:8080${post.images?.[0]?.url}`}
                 style={{ height: '220px', objectFit: 'cover' }}
             />
             {post.images && post.images.length > 1 && (
-                <Card.Footer className="text-muted small">
+                <Card.Footer>
                     {post.images.length} imágenes
                 </Card.Footer>
             )}

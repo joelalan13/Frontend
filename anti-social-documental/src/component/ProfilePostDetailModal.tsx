@@ -1,4 +1,5 @@
 import { Col, Carousel, Modal, Row } from 'react-bootstrap';
+import '../styles/profilePostDetailModal.css';
 
 type PostImage = {
     _id?: string;
@@ -37,56 +38,98 @@ const ProfilePostDetailModal = ({
     getPostTags,
     getCommentAuthorName
 }: ProfilePostDetailModalProps) => {
+    const tags = getPostTags(selectedPost);
+    const comments = selectedPost?.Comments || [];
+
     return (
-        <Modal show={show} onHide={onHide} size="lg">
+        <Modal show={show} onHide={onHide} size="lg" className="profile-post-modal">
             <Modal.Header closeButton>
-                <Modal.Title>Detalle</Modal.Title>
+                <Modal.Title>Detalle del Post</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                <Row>
-                    <Col md={7}>
+                <Row className="profile-row">
+                    {/* Columna de Imágenes */}
+                    <Col className="col-images">
                         {selectedPost?.images && selectedPost.images.length > 0 ? (
-                            <Carousel activeIndex={activeIndex} onSelect={(index) => onSelect(index)} interval={null}>
+                            <Carousel 
+                                activeIndex={activeIndex} 
+                                onSelect={(index) => onSelect(index)} 
+                                interval={null}
+                            >
                                 {selectedPost.images.map((image, index) => (
                                     <Carousel.Item key={image._id || `${image.url}-${index}`}>
                                         <img
                                             src={`http://localhost:8080${image.url}`}
-                                            className="d-block w-100 rounded"
-                                            style={{ height: '420px', objectFit: 'cover' }}
+                                            className="d-block w-100"
+                                            style={{ 
+                                                height: '420px', 
+                                                objectFit: 'cover',
+                                                borderRadius: '6px'
+                                            }}
                                             alt={`Imagen ${index + 1}`}
                                         />
                                     </Carousel.Item>
                                 ))}
                             </Carousel>
                         ) : (
-                            <div className="text-muted">No hay imágenes para mostrar.</div>
+                            <div className="no-images-placeholder">
+                                <p>No hay imágenes para mostrar</p>
+                            </div>
                         )}
                     </Col>
-                    <Col md={5}>
-                        <p>{selectedPost?.descripcion}</p>
-                        {getPostTags(selectedPost).length > 0 ? (
-                            <div className="mb-3">
-                                {getPostTags(selectedPost).map((tag: any, index: number) => (
-                                    <span key={`${tag}-${index}`} className="badge bg-secondary me-2 mb-2">
+
+                    {/* Columna de Contenido */}
+                    <Col className="col-content">
+                        {/* Descripción */}
+                        {selectedPost?.descripcion && (
+                            <div className="post-description">
+                                {selectedPost.descripcion}
+                            </div>
+                        )}
+
+                        {/* Tags */}
+                        {tags.length > 0 && (
+                            <div className="post-tags">
+                                {tags.map((tag, index) => (
+                                    <span key={`${tag}-${index}`} className="post-tag">
                                         #{typeof tag === 'string' ? tag : tag?.nombre || 'tag'}
                                     </span>
                                 ))}
                             </div>
-                        ) : null}
-                        <hr />
-                        <h6>Comentarios</h6>
-                        {selectedPost?.Comments && selectedPost.Comments.length > 0 ? (
-                            <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
-                                {selectedPost.Comments.map((comment: any, index: number) => (
-                                    <div key={comment.idComment || comment._id || index} className="mb-3 p-2 border rounded bg-light">
-                                        <strong>{getCommentAuthorName(comment)}</strong>
-                                        <div>{comment.contenido || 'Sin texto'}</div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="text-muted">No hay comentarios aún.</div>
                         )}
+
+                        {/* Divisor */}
+                        <div className="modal-divider"></div>
+
+                        {/* Comentarios */}
+                        <div className="comments-section">
+                            <div className="comments-header">
+                                Comentarios
+                                <span className="comments-count">{comments.length}</span>
+                            </div>
+
+                            {comments.length > 0 ? (
+                                <div className="comments-container">
+                                    {comments.map((comment, index) => (
+                                        <div 
+                                            key={comment.idComment || comment._id || index} 
+                                            className="comment-item"
+                                        >
+                                            <div className="comment-author">
+                                                {getCommentAuthorName(comment)}
+                                            </div>
+                                            <div className="comment-content">
+                                                {comment.contenido || 'Sin texto'}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="comment-empty">
+                                    No hay comentarios aún
+                                </div>
+                            )}
+                        </div>
                     </Col>
                 </Row>
             </Modal.Body>

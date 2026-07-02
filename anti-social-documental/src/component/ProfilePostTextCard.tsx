@@ -1,4 +1,5 @@
 import { Card } from 'react-bootstrap';
+import '../styles/profilePostCards.css';
 
 type PostImage = {
     _id?: string;
@@ -27,18 +28,11 @@ type ProfilePostTextCardProps = {
 const ProfilePostTextCard = ({ post, onClick, getPostTags }: ProfilePostTextCardProps) => {
     return (
         <Card
-            className="mb-3 p-3 border-0 shadow-sm"
-            style={{
-                width: '100%',
-                maxWidth: '600px',
-                borderRadius: '12px',
-                backgroundColor: '#f8f9fa',
-                cursor: 'pointer'
-            }}
+            className="profile-post-text-card"
             onClick={onClick}
         >
             <Card.Body>
-                <Card.Text style={{ fontSize: '1.1rem', marginBottom: '15px' }}>
+                <Card.Text>
                     {post.descripcion}
                 </Card.Text>
 
@@ -47,8 +41,7 @@ const ProfilePostTextCard = ({ post, onClick, getPostTags }: ProfilePostTextCard
                         {getPostTags(post).map((tag: any, index: number) => (
                             <span
                                 key={`${tag}-${index}`}
-                                className="badge bg-info text-dark me-2 mb-2"
-                                style={{ fontSize: '0.85rem', fontWeight: '500' }}
+                                className="badge"
                             >
                                 #{tag}
                             </span>
@@ -56,7 +49,7 @@ const ProfilePostTextCard = ({ post, onClick, getPostTags }: ProfilePostTextCard
                     </div>
                 )}
 
-                <small className="text-muted d-block mt-2">
+                <small className="text-muted d-block">
                     Publicado el: {new Date(post.createdAt || '').toLocaleDateString()}
                 </small>
             </Card.Body>

@@ -24,14 +24,7 @@ const RegisterForm = () => {
       return;
     }
 
-  try {
-    // POST hacia tu backend (según router.user.js)
-    const response = await axios.post("http://localhost:8080/usuario", {
-      nickName: nickName,
-      nombre: nombre, 
-      apellido: apellido,
-      fotoPerfil: "https://i.ibb.co/0j1Z8kM/default-profile.png", // Valor por defecto
-    });
+    setLoading(true);
 
     try {
       const nuevoUsuario = await usuarioServices.postUsuario({

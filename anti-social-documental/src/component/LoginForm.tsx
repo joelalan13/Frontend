@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import usuarioServices from "../services/usuarioServices";
 // @ts-ignore: allow importing CSS without type declarations
 import "../styles/loginForm.css"
-
+    
 const LoginForm = () => {
     const [nickname, setNickname] = useState("");
     const [password, setPassword] = useState("");
@@ -26,8 +26,8 @@ const LoginForm = () => {
                 let usuarioPersistido = usuarioEncontrado;
 
                 try {
-                    const perfilResponse = await api.get(`/usuario/${usuarioEncontrado._id}/profile`);
-                    usuarioPersistido = perfilResponse.data?.usuario || perfilResponse.data?.user || perfilResponse.data || usuarioEncontrado;
+                    const perfilCompleto = await usuarioServices.getUserProfileById(usuarioEncontrado.idUser);
+                    usuarioPersistido = perfilCompleto || usuarioEncontrado;
                 } catch (profileError) {
                     console.warn("No se pudo refrescar el perfil completo, se usará la información del listado", profileError);
                 }

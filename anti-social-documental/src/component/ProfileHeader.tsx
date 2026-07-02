@@ -1,5 +1,7 @@
 import { Button, Image, Form } from 'react-bootstrap';
 import { Camera } from 'lucide-react';
+import { API_URL } from '../constants';
+import '../styles/profileFormStyles.css';
 
 type ProfileHeaderProps = {
     user: {
@@ -22,6 +24,7 @@ type ProfileHeaderProps = {
     getProfileImageSrc: (fotoPerfil?: string) => string;
     onProfileImageError: () => void;
     onProfileImageLoad: () => void;
+    isOtherUserProfile?: boolean;
 };
 
 const ProfileHeader = ({
@@ -37,16 +40,19 @@ const ProfileHeader = ({
     getProfileImageSrc,
     onProfileImageError,
     onProfileImageLoad,
+    isOtherUserProfile = false,
 }: ProfileHeaderProps) => {
     return (
         <div className="d-flex flex-column align-items-center mb-4">
             <div className="position-relative">
-                <input
-                    type="file"
-                    id="fileInput"
-                    style={{ display: 'none' }}
-                    onChange={onFileChange}
-                />
+                {!isOtherUserProfile && (
+                    <input
+                        type="file"
+                        id="fileInput"
+                        style={{ display: 'none' }}
+                        onChange={onFileChange}
+                    />
+                )}
                 <div className="position-relative d-inline-block">
                     <Image
                         key={user?._id || 'profile'}
@@ -54,50 +60,102 @@ const ProfileHeader = ({
                         roundedCircle
                         width={150}
                         height={150}
-                        style={{ objectFit: 'cover' }}
+                        style={{ 
+                            objectFit: 'cover',
+                            border: '3px solid #00D166'
+                        }}
                         onError={onProfileImageError}
                         onLoad={onProfileImageLoad}
                     />
-                    <Button
-                        variant="secondary"
-                        className="position-absolute bottom-0 end-0 rounded-circle"
-                        onClick={() => document.getElementById('fileInput')?.click()}
-                    >
-                        <Camera size={16} />
-                    </Button>
+                    {!isOtherUserProfile && (
+                        <Button
+                            variant="secondary"
+                            className="position-absolute bottom-0 end-0 rounded-circle"
+                            onClick={() => document.getElementById('fileInput')?.click()}
+                            style={{
+                                background: '#00D166',
+                                border: 'none',
+                                width: '44px',
+                                height: '44px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: 0
+                            }}
+                        >
+                            <Camera size={20} color="#030A04" />
+                        </Button>
+                    )}
                 </div>
             </div>
 
-            <h2 className="mt-3">{user?.nickName}</h2>
-            <p className="text-muted">{user?.nombre} {user?.apellido}</p>
+            <h2 className="mt-3" style={{ color: '#EDFAEE' }}>{user?.nickName}</h2>
+            <p style={{ color: '#7d8d81', margin: 0 }}>{user?.nombre} {user?.apellido}</p>
 
-            <div className="d-flex flex-wrap justify-content-center gap-3 mt-2">
-                <div className="border rounded px-3 py-2" style={{ minWidth: '180px' }}>
-                    <div><strong>{getRelationshipCount(user?.followers)}</strong> Seguidores</div>
+            <div className="d-flex flex-wrap justify-content-center gap-3 mt-3">
+                <div style={{
+                    border: '1px solid #243224',
+                    borderRadius: '6px',
+                    padding: '1rem 1.5rem',
+                    minWidth: '180px',
+                    textAlign: 'center',
+                    background: '#111812'
+                }}>
+                    <div>
+                        <strong style={{ color: '#00D166', fontSize: '1.25rem' }}>
+                            {getRelationshipCount(user?.followers)}
+                        </strong>
+                        <div style={{ color: '#7d8d81', fontSize: '0.9rem', marginTop: '0.25rem' }}>
+                            Seguidores
+                        </div>
+                    </div>
                 </div>
-                <div className="border rounded px-3 py-2" style={{ minWidth: '180px' }}>
-                    <div><strong>{getRelationshipCount(user?.following)}</strong> Seguidos</div>
+                <div style={{
+                    border: '1px solid #243224',
+                    borderRadius: '6px',
+                    padding: '1rem 1.5rem',
+                    minWidth: '180px',
+                    textAlign: 'center',
+                    background: '#111812'
+                }}>
+                    <div>
+                        <strong style={{ color: '#00D166', fontSize: '1.25rem' }}>
+                            {getRelationshipCount(user?.following)}
+                        </strong>
+                        <div style={{ color: '#7d8d81', fontSize: '0.9rem', marginTop: '0.25rem' }}>
+                            Seguidos
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div className="d-flex flex-column align-items-center gap-2 mt-3" style={{ maxWidth: '360px', width: '100%' }}>
-                <div className="d-flex gap-2 w-100">
-                    <Form.Control
-                        size="sm"
-                        placeholder="Nickname del usuario"
-                        value={targetUserId}
-                        onChange={(e) => onTargetUserIdChange(e.target.value)}
-                    />
-                    <Button
-                        size="sm"
-                        variant={isFollowingTarget ? 'danger' : 'primary'}
+            <div className="d-flex flex-column align-items-center gap-3 mt-4" style={{ maxWidth: '360px', width: '100%' }}>
+                {isOtherUserProfile ? (
+                    <button
+                        className={`profile-btn-follow ${isFollowingTarget ? 'is-following' : ''}`}
                         onClick={onFollowToggle}
-                        disabled={followLoading || !targetUserId || targetUserId.toLowerCase() === user?.nickName?.toLowerCase()}
-                        style={{ minWidth: '140px', width: '140px', flexShrink: 0, whiteSpace: 'nowrap' }}
+                        disabled={followLoading}
+                        style={{ width: '100%' }}
                     >
                         {followLoading ? '...' : isFollowingTarget ? 'Dejar de seguir' : 'Seguir'}
-                    </Button>
-                </div>
+                    </button>
+                ) : (
+                    <div className="profile-search-container">
+                        <Form.Control
+                            className="profile-input"
+                            placeholder="Nickname del usuario"
+                            value={targetUserId}
+                            onChange={(e) => onTargetUserIdChange(e.target.value)}
+                        />
+                        <button
+                            className="profile-btn-follow"
+                            onClick={onFollowToggle}
+                            disabled={followLoading || !targetUserId || targetUserId.toLowerCase() === user?.nickName?.toLowerCase()}
+                        >
+                            {followLoading ? '...' : isFollowingTarget ? 'Dejar de seguir' : 'Seguir'}
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

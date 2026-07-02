@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { Image, Send, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import postServices from "../services/postServices";
-import tagsServices from "../services/tagsServices";
 import postImageServices from "../services/postImageServices";
-import type { Tag } from "../types";
+import tagsServices from "../services/tagsServices";
+import type { Post } from "../types";
 // @ts-ignore: allow importing CSS without type declarations
 import "../styles/postForm.css";
 
@@ -12,28 +12,43 @@ const PostForm = () => {
   const [descripcion, setDescripcion] = useState("");
   const [imageUrls, setImageUrls] = useState<string[]>([""]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [tags, setTags] = useState<Tag[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [tagsLoading, setTagsLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Cargar tags desde la API
+  // Cargar tags desde posts existentes
   useEffect(() => {
-    const fetchTags = async () => {
+    const fetchTagsFromPosts = async () => {
       setTagsLoading(true);
       try {
-        const response = await tagsServices.getAllTags(1, 50);
-        setTags(response.data);
+        const posts = await postServices.getPosts();
+        
+        // Extraer tags únicos de todos los posts
+        const uniqueTags = new Set<string>();
+        posts.forEach((post: Post) => {
+          if (post.tags && Array.isArray(post.tags)) {
+            post.tags.forEach((tag: any) => {
+              const tagName = typeof tag === 'string' ? tag : tag.nombre;
+              if (tagName) {
+                uniqueTags.add(tagName);
+              }
+            });
+          }
+        });
+
+        setTags(Array.from(uniqueTags).sort());
       } catch (err) {
         console.error("Error al cargar tags:", err);
-        setError("Error al cargar las etiquetas");
+        // No mostrar error porque los tags son opcionales
+        setTags([]);
       } finally {
         setTagsLoading(false);
       }
     };
 
-    fetchTags();
+    fetchTagsFromPosts();
   }, []);
 
   const handleAddUrl = () => {
@@ -119,8 +134,6 @@ const PostForm = () => {
     }
   };
 
-  if (tagsLoading) return <main className="post-form-page"><p>Cargando etiquetas...</p></main>;
-
   return (
     <main className="post-form-page">
       <section className="post-form-page__header">
@@ -201,24 +214,26 @@ const PostForm = () => {
           <h3>ETIQUETAS</h3>
 
           <div className="post-form__tags">
-            {tags.length > 0 ? (
+            {!tagsLoading && tags.length > 0 ? (
               tags.map((tag) => (
                 <button
-                  key={tag.nombre}
+                  key={tag}
                   type="button"
                   className={`post-form__tag ${
-                    selectedTags.includes(tag.nombre)
+                    selectedTags.includes(tag)
                       ? "post-form__tag--active"
                       : ""
                   }`}
-                  onClick={() => handleSelectTag(tag.nombre)}
+                  onClick={() => handleSelectTag(tag)}
                   disabled={loading}
                 >
-                  #{tag.nombre}
+                  #{tag}
                 </button>
               ))
+            ) : tagsLoading ? (
+              <p>Cargando etiquetas...</p>
             ) : (
-              <p>No hay etiquetas disponibles</p>
+              <p>No hay etiquetas disponibles aún</p>
             )}
           </div>
         </aside>

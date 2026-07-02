@@ -1,7 +1,6 @@
 import noFindError from "./noFindError"
 import type { Tag, TagPaginatedResponse } from "../types"
-
-const API_URL = "http://localhost:8080"
+import { API_URL } from "../constants"
 
 const getAllTags = async (page: number = 1, limit: number = 20, nombre?: string): Promise<TagPaginatedResponse> => {   
 
