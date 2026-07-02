@@ -3,17 +3,23 @@ export interface User {
   nickName: string;
   nombre: string;
   apellido: string;
-  followers: string[];
-  following: string[];
-  createdAt: Date;
-  updatedAt: Date;
+  fotoPerfil?: string | null;
+  followers: Array<string | UserReference>;
+  following: Array<string | UserReference>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UserReference {
+  idUser: string;
+  nickName: string;
 }
 
 export interface PostImage {
   idPostImage: string;
   url: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Post {
@@ -22,9 +28,9 @@ export interface Post {
   descripcion: string;
   images: PostImage[];
   tags: string[];
-  Comments: Comment[];
-  createdAt: Date;
-  updatedAt: Date;
+  Comments?: Comment[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Comment {
@@ -33,8 +39,8 @@ export interface Comment {
   idUser: string;
   contenido: string;
   visible?: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Tag {
@@ -59,6 +65,10 @@ export interface CreateCommentPayload {
 
 export interface CreatePostImagePayload {
   urlImages: string[];
+}
+
+export interface ApiMessage {
+  message: string;
 }
 
 export interface TagPaginatedResponse {

@@ -1,7 +1,5 @@
 import { Routes, Route, useNavigate, useLocation } from "react-router"
 import { useState, useEffect } from "react"
-import api from './api';
-
 import Header from "./component/Header"
 import Footer from "./component/Footer"
 import Inicio from "./pages/Inicio"

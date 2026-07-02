@@ -1,7 +1,6 @@
-import type { PostImage, CreatePostImagePayload, Post } from "../types";
+import type { PostImage, CreatePostImagePayload, ApiMessage } from "../types";
+import { API_URL } from "../config/api"
 import noFindError from "./noFindError"
-
-const API_URL = "http://localhost:8080"
 
 const getImagesDePost = async(idPost: string) : Promise<PostImage[]> => {
 
@@ -17,7 +16,7 @@ const getImagesDePost = async(idPost: string) : Promise<PostImage[]> => {
 
 const getImageDePostById = async (idPost: string , idImage : string) : Promise<PostImage> =>{
 
-    const respuesta = await fetch(`${API_URL}/post/${idPost}/images/${idImage}`)
+    const respuesta = await fetch(`${API_URL}/post/${idPost}/image/${idImage}`)
 
     noFindError(respuesta)
 
@@ -26,7 +25,7 @@ const getImageDePostById = async (idPost: string , idImage : string) : Promise<P
     return data
 }
 
-const postImage = async ( payload: CreatePostImagePayload ,idPost: string) : Promise<PostImage[]> => {
+const postImage = async ( payload: CreatePostImagePayload ,idPost: string) : Promise<ApiMessage> => {
 
     const respuesta = await fetch(`${API_URL}/post/${idPost}/images`, {
         method: "POST",
@@ -38,13 +37,10 @@ const postImage = async ( payload: CreatePostImagePayload ,idPost: string) : Pro
 
     noFindError(respuesta)
 
-    const nuevasImagenes : PostImage[] = await respuesta.json()
-
-
-    return nuevasImagenes
+    return respuesta.json()
 }
 
-const putImage = async (payload: CreatePostImagePayload, idPost : string, idImage: string) : Promise<PostImage> => {
+const putImage = async (payload: CreatePostImagePayload, idPost : string, idImage: string) : Promise<ApiMessage> => {
 
     const respuesta = await fetch(`${API_URL}/post/${idPost}/image/${idImage}`, {
         method : "PUT",
@@ -56,9 +52,7 @@ const putImage = async (payload: CreatePostImagePayload, idPost : string, idImag
 
     noFindError(respuesta)
 
-    const data : PostImage = await respuesta.json()
-
-    return data
+    return respuesta.json()
 }
 
 const deleteImageDePost = async (idPost : string , idImage : string) : Promise<void> => {

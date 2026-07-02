@@ -1,10 +1,21 @@
 import { useState } from "react"
 import { MoreVertical, Bookmark, ThumbsUp, MessageCircle } from "lucide-react"
 import { Link } from "react-router-dom"
+import type { Post } from "../types"
 // @ts-ignore: allow importing CSS without type declarations
 import "../styles/feedpost.css"
 
-const FeedPost = ({ dataPost }) => {
+type FeedPostProps = {
+  dataPost: Post & {
+    likes?: number
+    nombre?: string
+    rol?: string
+    tiempo?: string
+    info?: string
+  }
+}
+
+const FeedPost = ({ dataPost }: FeedPostProps) => {
   const [likes, setLikes] = useState(dataPost.likes || 0)
   const [yaClickeado, setYaClickeado] = useState(false)
 
@@ -16,15 +27,6 @@ const FeedPost = ({ dataPost }) => {
   const cantComentarios = dataPost.Comments?.length || 0
 
   // Función para obtener el nombre del tag (si es objeto o string)
-  const getTagName = (tag) => {
-    return typeof tag === 'string' ? tag : tag.nombre
-  }
-
-  // Función para obtener la key del tag
-  const getTagKey = (tag) => {
-    return typeof tag === 'string' ? tag : tag.idTag
-  }
-
   return (
     <article className="feedpost">
       {/* Header del post */}
@@ -62,8 +64,8 @@ const FeedPost = ({ dataPost }) => {
       {dataPost.tags && dataPost.tags.length > 0 && (
         <div className="feedpost__tags">
           {dataPost.tags.map((tag) => (
-            <span key={getTagKey(tag)} className="feedpost__tag">
-              #{getTagName(tag)}
+            <span key={tag} className="feedpost__tag">
+              #{tag}
             </span>
           ))}
         </div>
@@ -80,7 +82,7 @@ const FeedPost = ({ dataPost }) => {
           {dataPost.images.map((img, idx) => (
             <img
               key={idx}
-              src={img}
+              src={img.url}
               alt="Post"
               className="feedpost__image"
             />

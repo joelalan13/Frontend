@@ -1,7 +1,6 @@
-import type { User, RegisterPayload } from "../types";
+import type { User, RegisterPayload, Post } from "../types";
+import { API_URL } from "../config/api"
 import noFindError from "./noFindError"
-
-const API_URL = "http://localhost:8080"
 
 const getUsuarios = async (): Promise<User[]> => {
     const respuesta = await fetch(`${API_URL}/usuarios`)
@@ -21,6 +20,14 @@ const getUsuarioById = async (idUsuario: string): Promise<User> => {
     const usuario : User = await respuesta.json()
 
     return usuario;
+}
+
+const getPostsByUsuarioId = async (idUsuario: string): Promise<Post[]> => {
+    const respuesta = await fetch(`${API_URL}/usuario/${idUsuario}/posts`)
+
+    noFindError(respuesta)
+
+    return respuesta.json()
 }
 
 const postUsuario = async (payload: RegisterPayload): Promise<User> => {
@@ -66,4 +73,4 @@ const deleteUsuario = async (idUsuario: string) : Promise <void> => {
    noFindError(respuesta)   
 }
 
-export default { getUsuarios, getUsuarioById, postUsuario, putUsuario, deleteUsuario }
+export default { getUsuarios, getUsuarioById, getPostsByUsuarioId, postUsuario, putUsuario, deleteUsuario }

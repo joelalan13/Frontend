@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { Container, Row, Col, Card, Button, Spinner, Alert } from 'react-bootstrap';
 import { LogOut, Eye } from 'lucide-react';
+import usuarioServices from '../services/usuarioServices';
+import type { Post, User } from '../types';
 
 const Perfil = () => {
-    const [user, setUser] = useState<{ id: number; nickName: string } | null>(null);
-    const [posts, setPosts] = useState<any[]>([]);
+    const [user, setUser] = useState<User | null>(null);
+    const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
@@ -26,8 +27,8 @@ const Perfil = () => {
         const fetchPosts = async () => {
             setLoading(true);
             try {
-                const response = await axios.get(`http://localhost:8080/posts?userId=${user.id}`);
-                setPosts(response.data);
+                const userPosts = await usuarioServices.getPostsByUsuarioId(user.idUser);
+                setPosts(userPosts);
             } catch (err) {
                 console.error('Error al cargar posts', err);
             } finally {
@@ -54,7 +55,7 @@ const Perfil = () => {
             <h3 className="mb-3">Mis Publicaciones</h3>
             <Row>
                 {posts.map((post) => (
-                    <Col md={4} key={post.id} className="mb-4">
+                    <Col md={4} key={post.idPost} className="mb-4">
                         <Card>
                             <Card.Body>
                                 <Card.Text>{post.descripcion}</Card.Text>
@@ -63,7 +64,7 @@ const Perfil = () => {
                                 </Card.Subtitle>
                                 <Button 
                                     variant="primary" 
-                                    onClick={() => navigate(`/detalle/${post.id}`)}
+                                    onClick={() => navigate(`/postDetails/${post.idPost}`)}
                                 >
                                     <Eye size={16} className="me-1" /> Ver más
                                 </Button>

@@ -1,7 +1,6 @@
 import noFindError from "./noFindError"
+import { API_URL } from "../config/api"
 import type { Tag, TagPaginatedResponse } from "../types"
-
-const API_URL = "http://localhost:8080"
 
 const getAllTags = async (page: number = 1, limit: number = 20, nombre?: string): Promise<TagPaginatedResponse> => {   
 
@@ -32,7 +31,7 @@ const getTagsDePostById = async (idPost: string): Promise<string[]> => {
 
 const addTagToPost = async (idPost: string, tagName: string): Promise<{ message: string; tag: { nombre: string } }> => {
     
-    const respuesta = await fetch(`${API_URL}/post/${idPost}/tag`, {
+    const respuesta = await fetch(`${API_URL}/post/${idPost}/tags`, {
         method: "POST",
         headers: {
             'Content-Type': 'application/json'
@@ -49,7 +48,7 @@ const addTagToPost = async (idPost: string, tagName: string): Promise<{ message:
 
 const removeTagFromPost = async (idPost: string, tagName: string): Promise<{ message: string }> => {
     
-    const respuesta = await fetch(`${API_URL}/post/${idPost}/tag/${tagName}`, {
+    const respuesta = await fetch(`${API_URL}/post/${idPost}/tags/${encodeURIComponent(tagName)}`, {
         method: "DELETE",
     })
     

@@ -1,7 +1,6 @@
-    import type { Post, CreatePostPayload } from "../types";
-    import noFindError from "./noFindError"
-
-const API_URL = "http://localhost:8080"
+import type { Post, CreatePostPayload } from "../types";
+import { API_URL } from "../config/api"
+import noFindError from "./noFindError"
 
 const getPosts = async (): Promise<Post[]> =>{
 
