@@ -38,26 +38,6 @@ const ProfilePostImageCard = ({ post, onClick, isOwnPost = false, onEdit, onDele
             style={{ cursor: 'pointer', position: 'relative', overflow: 'visible' }} 
             onClick={onClick}
         >
-            {isOwnPost && (
-                <MoreOptionsMenu
-                    className="profile-post-card__options"
-                    menuItems={[
-                        {
-                            label: 'Editar descripción',
-                            icon: <Edit2 size={16} />,
-                            onClick: () => onEdit?.(),
-                            className: 'more-options-menu__item--edit'
-                        },
-                        {
-                            label: 'Eliminar post',
-                            icon: <Trash2 size={16} />,
-                            onClick: () => onDelete?.(),
-                            className: 'more-options-menu__item--delete'
-                        }
-                    ]}
-                />
-            )}
-
             <Card.Img
                 variant="top"
                 src={`http://localhost:8080${post.images?.[0]?.url}`}
