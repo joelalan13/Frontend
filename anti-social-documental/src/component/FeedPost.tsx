@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react"
 import { MoreVertical, Bookmark, ThumbsUp, MessageCircle, Trash2, Edit2, X, Check } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
-import Lightbox from "yet-another-react-lightbox"
-import "yet-another-react-lightbox/styles.css"
 import type { Post, PostImage, User } from "../types"
 import usuarioServices from "../services/usuarioServices"
 import postServices from "../services/postServices"
 import postImageServices from "../services/postImageServices"
+import ProfilePostDetailModal from "./ProfilePostDetailModal"
 import { getAvatarColor } from "../utils/getAvatarColor"
+import { API_URL } from "../constants"
 // @ts-ignore: allow importing CSS without type declarations
 import "../styles/feedpost.css"
 
@@ -21,7 +21,9 @@ const FeedPost = ({ dataPost, onPostDeleted, onPostUpdated }: FeedPostProps) => 
   const [likes, setLikes] = useState<number>(dataPost.likes || 0)
   const [yaClickeado, setYaClickeado] = useState<boolean>(false)
   const [userData, setUserData] = useState<User | null>(null)
-  const [lightboxIndex, setLightboxIndex] = useState(-1)
+  const [showDetailModal, setShowDetailModal] = useState(false)
+  const [activeImageIndex, setActiveImageIndex] = useState(0)
+  const [commentAuthors, setCommentAuthors] = useState<Record<string, string>>({})
   const [showMenu, setShowMenu] = useState(false)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [deleting, setDeleting] = useState(false)
@@ -31,7 +33,6 @@ const FeedPost = ({ dataPost, onPostDeleted, onPostUpdated }: FeedPostProps) => 
   const [editingImages, setEditingImages] = useState(false)
   const [deletingImageId, setDeletingImageId] = useState<string | null>(null)
   const [images, setImages] = useState<PostImage[]>(dataPost.images || [])
-  const apiUrl: string = import.meta.env.VITE_API_URL || "http://localhost:8080"
   const navigate = useNavigate()
 
   // Cargar datos del usuario actual
@@ -57,6 +58,45 @@ const FeedPost = ({ dataPost, onPostDeleted, onPostUpdated }: FeedPostProps) => 
 
     fetchUserData()
   }, [dataPost.idUser])
+
+  // Cargar comentarios
+  useEffect(() => {
+    const loadCommentAuthors = async () => {
+      if (!dataPost?.Comments?.length) {
+        setCommentAuthors({})
+        return
+      }
+
+      const authors: Record<string, string> = {}
+
+      for (const comment of dataPost.Comments) {
+        const userRef = comment?.idUser
+
+        if (userRef && typeof userRef === 'object') {
+          const nick = userRef.nickName || userRef.nickname || userRef.userName || userRef.nombre || 'Usuario'
+          if (userRef._id) authors[userRef._id] = nick
+          continue
+        }
+
+        if (typeof userRef === 'string' && userRef) {
+          if (authors[userRef]) continue
+
+          try {
+            const userData = await usuarioServices.getUsuarioById(userRef)
+            const nick = userData?.nickName || userData?.nombre || 'Usuario'
+            authors[userRef] = nick
+          } catch (error) {
+            console.error('No se pudo cargar el usuario del comentario', error)
+            authors[userRef] = 'Usuario'
+          }
+        }
+      }
+
+      setCommentAuthors(authors)
+    }
+
+    loadCommentAuthors()
+  }, [dataPost])
 
   const handleLike = (): void => {
     !yaClickeado ? setLikes((prev) => prev + 1) : setLikes((prev) => prev - 1)
@@ -153,7 +193,7 @@ const FeedPost = ({ dataPost, onPostDeleted, onPostUpdated }: FeedPostProps) => 
   const getImageUrl = (img: PostImage | string): string => {
     if (typeof img === 'string') return img
     if (img.url.startsWith('http')) return img.url
-    return `${apiUrl}${img.url}`
+    return `${API_URL}${img.url}`
   }
 
   // Función para obtener iniciales del usuario
@@ -162,6 +202,14 @@ const FeedPost = ({ dataPost, onPostDeleted, onPostUpdated }: FeedPostProps) => 
     const nombre = userData.nombre?.charAt(0).toUpperCase() || ""
     const apellido = userData.apellido?.charAt(0).toUpperCase() || ""
     return nombre + apellido
+  }
+
+  // Función para obtener la URL de la foto de perfil
+  const getProfileImageUrl = (): string | null => {
+    if (!userData?.fotoPerfil) return null
+    if (userData.fotoPerfil.startsWith('http://') || userData.fotoPerfil.startsWith('https://')) return userData.fotoPerfil
+    if (userData.fotoPerfil.startsWith('/')) return `${API_URL}${userData.fotoPerfil}`
+    return `${API_URL}/${userData.fotoPerfil}`
   }
 
   // Función para calcular tiempo relativo
@@ -183,13 +231,59 @@ const FeedPost = ({ dataPost, onPostDeleted, onPostUpdated }: FeedPostProps) => 
     return createdDate.toLocaleDateString('es-ES')
   }
 
+  const getPostTags = (post: Post | null | undefined) => {
+    const rawTags = (post as any)?.tags ?? (post as any)?.Tags ?? []
+
+    if (Array.isArray(rawTags)) {
+      return rawTags.flatMap((tag: any) => {
+        if (typeof tag === 'string') {
+          return tag
+            .split(',')
+            .map((item: string) => item.trim())
+            .filter(Boolean)
+        }
+
+        if (tag && typeof tag === 'object') {
+          const nombre = tag.nombre || tag.name || tag.text || tag.label || tag.tag || ''
+          return nombre ? [nombre] : []
+        }
+
+        return []
+      })
+    }
+
+    if (typeof rawTags === 'string') {
+      return rawTags
+        .split(',')
+        .map((item: string) => item.trim())
+        .filter(Boolean)
+    }
+
+    return []
+  }
+
+  const getCommentAuthorName = (comment: any) => {
+    const userRef = comment?.idUser
+
+    if (userRef && typeof userRef === 'object') {
+      return userRef.nickName || userRef.nickname || userRef.userName || userRef.nombre || 'Usuario'
+    }
+
+    if (typeof userRef === 'string' && userRef) {
+      return comment?.nickName || comment?.usuario?.nickName || commentAuthors[userRef] || 'Usuario'
+    }
+
+    return 'Usuario'
+  }
+
   const avatarColor = getAvatarColor(dataPost.idUser as string)
 
-  // Preparar slides para el lightbox
-  const slides = images?.map((img) => ({
-    src: getImageUrl(img),
-    alt: "Post image"
-  })) || []
+  const handleImageClick = (index: number) => {
+    if (!editingImages) {
+      setActiveImageIndex(index)
+      setShowDetailModal(true)
+    }
+  }
 
   return (
     <>
@@ -200,11 +294,20 @@ const FeedPost = ({ dataPost, onPostDeleted, onPostUpdated }: FeedPostProps) => 
           <div className="feedpost__user-info">
             <button 
               className="feedpost__avatar"
-              style={{ backgroundColor: avatarColor, border: "none", cursor: "pointer" }}
+              style={{ 
+                backgroundColor: avatarColor, 
+                border: "none", 
+                cursor: "pointer",
+                padding: 0,
+                overflow: "hidden",
+                backgroundImage: getProfileImageUrl() ? `url(${getProfileImageUrl()})` : 'none',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              }}
               onClick={handleUserClick}
               title="Ver perfil"
             >
-              {getInitials()}
+              {!getProfileImageUrl() && getInitials()}
             </button>
             <div className="feedpost__user-details">
               <h3 
@@ -414,7 +517,7 @@ const FeedPost = ({ dataPost, onPostDeleted, onPostUpdated }: FeedPostProps) => 
                   alt="Post"
                   className="feedpost__image"
                   style={{ cursor: editingImages ? "default" : "pointer" }}
-                  onClick={() => !editingImages && setLightboxIndex(idx)}
+                  onClick={() => handleImageClick(idx)}
                   title={editingImages ? "Modo eliminar" : "Click para ver a tamaño completo"}
                 />
                 {editingImages && isOwnPost && (
@@ -508,12 +611,15 @@ const FeedPost = ({ dataPost, onPostDeleted, onPostUpdated }: FeedPostProps) => 
         </div>
       </article>
 
-      {/* Lightbox para ver imágenes */}
-      <Lightbox
-        slides={slides}
-        open={lightboxIndex >= 0}
-        index={lightboxIndex}
-        close={() => setLightboxIndex(-1)}
+      {/* Modal de detalles del post */}
+      <ProfilePostDetailModal
+        show={showDetailModal}
+        onHide={() => setShowDetailModal(false)}
+        selectedPost={dataPost}
+        activeIndex={activeImageIndex}
+        onSelect={(index) => setActiveImageIndex(index)}
+        getPostTags={getPostTags}
+        getCommentAuthorName={getCommentAuthorName}
       />
     </>
   )
