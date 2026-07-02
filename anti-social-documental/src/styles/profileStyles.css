@@ -1,0 +1,97 @@
+/* Estilos generales para Perfil y PerfilUsuario */
+
+.profile-container {
+  background-color: #0c110d;
+}
+
+.profile-header-section {
+  padding: 2rem 0;
+  border-bottom: 1px solid #243224;
+  margin-bottom: 2rem;
+}
+
+.profile-posts-section {
+  border: 1px solid #243224;
+  border-radius: 8px;
+  padding: 1.5rem;
+  background-color: #080C09;
+  overflow: hidden;
+}
+
+.profile-posts-tabs {
+  margin-bottom: 2rem;
+}
+
+.profile-posts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  min-height: 300px;
+}
+
+.profile-posts-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #7d8d81;
+  font-style: italic;
+}
+
+/* Spinner de carga */
+.profile-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.profile-loading .spinner-border {
+  color: #00D166 !important;
+  border-width: 3px;
+}
+
+/* No encontrado */
+.profile-not-found {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #ff6b6b;
+}
+
+.profile-not-found p {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .profile-header-section {
+    padding: 1.5rem 0;
+    margin-bottom: 1.5rem;
+  }
+
+  .profile-posts-section {
+    padding: 1rem;
+    border-radius: 6px;
+  }
+
+  .profile-posts-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .profile-header-section {
+    padding: 1rem 0;
+    margin-bottom: 1rem;
+  }
+
+  .profile-posts-section {
+    padding: 0.75rem;
+  }
+
+  .profile-posts-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}

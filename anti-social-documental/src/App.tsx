@@ -1,67 +1,83 @@
-import { Routes, Route, useNavigate, useLocation } from "react-router"
-import { useState, useEffect } from "react"
+import { Routes, Route, useLocation } from "react-router-dom"
+import { useMemo } from "react"
+
 import Header from "./component/Header"
 import Footer from "./component/Footer"
+import ProtectedRoute from "./component/ProtectedRoute"
 import Inicio from "./pages/Inicio"
 import Perfil from "./pages/Perfil"
-import Login from "./pages/Login"
-import Register from "./pages/Register"
+import PerfilUsuario from "./pages/PerfilUsuario"
+import Login from "./component/Login"
+import Register from "./component/RegisterForm"
 import NewPost from "./pages/NewPost"
 import PostDetails from "./pages/PostDetails"
+import { ROUTES } from "./constants"
 
 type Screen = "home" | "login" | "register" | "profile" | "create" | "post"
 
 function App() {
-  const [screen, setScreen] = useState<Screen>("home")
-  const navigate = useNavigate()
   const location = useLocation()
 
-
-  // Sincronizar screen con la ruta actual
-  useEffect(() => {
+  // Determinar screen actual basado en la ruta
+  const screen: Screen = useMemo(() => {
     const path = location.pathname
-    if (path === "/" || path === "/inicio") setScreen("home")
-    else if (path === "/login") setScreen("login")
-    else if (path === "/register") setScreen("register")
-    else if (path === "/perfil") setScreen("profile")
-    else if (path === "/newPost") setScreen("create")
-    else setScreen("post")
+    if (path === "/" || path === "/inicio") return "home"
+    if (path === "/login") return "login"
+    if (path === "/register") return "register"
+    if (path === "/perfil") return "profile"
+    if (path === "/newPost") return "create"
+    return "post"
   }, [location.pathname])
 
-  const handleNav = (s: Screen) => {
-    setScreen(s)
-    switch (s) {
-      case "home":
-        navigate("/")
-        break
-      case "login":
-        navigate("/login")
-        break
-      case "register":
-        navigate("/register")
-        break
-      case "profile":
-        navigate("/perfil")
-        break
-      case "create":
-        navigate("/newPost")
-        break
-      default:
-        navigate("/")
-    }
+  const handleLogout = () => {
+    localStorage.removeItem('usuario')
   }
+
+  const showHeader = true
 
   return (
     <div>
-        <Header screen={screen} onNav={handleNav} />
-        <Routes>
-            <Route path="/" element={<Inicio/>}/>
-            <Route path="/login" element={<Login/>}/>
-            <Route path="/register" element={<Register/>}/>
-            <Route path="/perfil" element={<Perfil/>} />
-            <Route path="/newPost" element={<NewPost/>}/>
-            <Route path="/postDetails/:idPost" element={<PostDetails/>}/>
-        </Routes>
+      {showHeader && <Header screen={screen} onLogout={handleLogout} />}
+      <Routes>
+        {/* Rutas públicas */}
+        <Route path={ROUTES.HOME} element={<Inicio />} />
+        <Route path={ROUTES.LOGIN} element={<Login />} />
+        <Route path={ROUTES.REGISTER} element={<Register />} />
+        
+        {/* Rutas protegidas */}
+        <Route 
+          path={ROUTES.PROFILE} 
+          element={
+            <ProtectedRoute>
+              <Perfil />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path={ROUTES.PROFILE_USER} 
+          element={
+            <ProtectedRoute>
+              <PerfilUsuario />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path={ROUTES.NEW_POST} 
+          element={
+            <ProtectedRoute>
+              <NewPost />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path={ROUTES.POST_DETAILS} 
+          element={
+            <ProtectedRoute>
+              <PostDetails />
+            </ProtectedRoute>
+          } 
+        />
+      </Routes>
     </div>
   )
 }

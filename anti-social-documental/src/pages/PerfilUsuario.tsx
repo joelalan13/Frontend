@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { Container, Row, Col, Spinner } from 'react-bootstrap';
 import { filterRecentPosts } from '../utils/dateFilters';
-import { API_URL } from '../constants';
 
 import ButtonScrollPerfil from '../component/ButtonScrollPerfil';
 import ProfileHeader from '../component/ProfileHeader';
@@ -32,25 +31,26 @@ type Post = {
     Comments?: any[];
 };
 
-const Perfil = () => {
+const PerfilUsuario = () => {
+    const { userId } = useParams<{ userId: string }>();
+    const navigate = useNavigate();
+
     // Estado principal del perfil
-    const [user, setUser] = useState<{ _id: string; nickName: string; nombre: string; apellido: string; fotoPerfil?: string; followers: any; following: any } | null>(null);
+    const [user, setUser] = useState<{ _id: string; idUser?: string; nickName: string; nombre: string; apellido: string; fotoPerfil?: string; followers: any; following: any } | null>(null);
+    const [currentUser, setCurrentUser] = useState<any>(null);
     const [mostrarImagenes, setMostrarImagenes] = useState(true);
     const [selectedPost, setSelectedPost] = useState<Post | null>(null);
     const [showModal, setShowModal] = useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
     const [commentAuthors, setCommentAuthors] = useState<Record<string, string>>({});
-    const [targetUserName, setTargetUserName] = useState('');
-    const [targetUserInfo, setTargetUserInfo] = useState<{ _id?: string; nickName?: string; nombre?: string } | null>(null);
-    const [isFollowingTarget, setIsFollowingTarget] = useState(false);
-    const [followLoading, setFollowLoading] = useState(false);
-    const [isChecking, setIsChecking] = useState(true);
     const [posts, setPosts] = useState<Post[]>([]);
     const [loading, setLoading] = useState(true);
     const [followersDetails, setFollowersDetails] = useState<{ id: string; label: string }[]>([]);
     const [followingDetails, setFollowingDetails] = useState<{ id: string; label: string }[]>([]);
     const [profileImageError, setProfileImageError] = useState(false);
-    const navigate = useNavigate();
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [followLoading, setFollowLoading] = useState(false);
+    const [isOwnProfile, setIsOwnProfile] = useState(false);
 
     // Helpers de normalización y conteo de relaciones
     const getRelationshipItems = (value: any) => {
@@ -93,8 +93,8 @@ const Perfil = () => {
     const getProfileImageSrc = (fotoPerfil?: string) => {
         if (!fotoPerfil || profileImageError) return 'https://via.placeholder.com/150';
         if (fotoPerfil.startsWith('http://') || fotoPerfil.startsWith('https://')) return fotoPerfil;
-        if (fotoPerfil.startsWith('/')) return `${API_URL}${fotoPerfil}`;
-        return `${API_URL}/${fotoPerfil}`;
+        if (fotoPerfil.startsWith('/')) return `http://localhost:8080${fotoPerfil}`;
+        return `http://localhost:8080/${fotoPerfil}`;
     };
 
     // Efecto: resetear la imagen de perfil cuando cambia el usuario
@@ -102,75 +102,69 @@ const Perfil = () => {
         setProfileImageError(false);
     }, [user?._id, user?.fotoPerfil]);
 
-    // Efecto: cargar el usuario desde localStorage al entrar al perfil
+    // Efecto: cargar usuario autenticado desde localStorage
     useEffect(() => {
         const storedUser = localStorage.getItem('usuario');
-        console.log("Usuario almacenado en localStorage:", storedUser);
-        if (!storedUser) {
-            navigate('/login');
-        } else {
-            console.log("Cargando usuario desde localStorage...");
+        if (storedUser) {
             const parsedUser = JSON.parse(storedUser);
-            localStorage.setItem('usuario', JSON.stringify(parsedUser));
-            setUser(normalizeUserData(parsedUser));
+            setCurrentUser(normalizeUserData(parsedUser));
         }
-        setIsChecking(false); 
-    }, [navigate]);
+    }, []);
 
-    // Efecto: cargar los posts del usuario autenticado
+    // Efecto: cargar el usuario consultado
+    useEffect(() => {
+        if (!userId) {
+            navigate('/');
+            return;
+        }
+
+        const fetchUserData = async () => {
+            setLoading(true);
+            try {
+                const userData = await usuarioServices.getUserProfileById(userId);
+                setUser(normalizeUserData(userData));
+
+                // Verificar si es el perfil propio
+                if (currentUser && (userData._id === currentUser._id || userData._id === currentUser.idUser)) {
+                    setIsOwnProfile(true);
+                } else {
+                    setIsOwnProfile(false);
+                    // Verificar si estamos siguiendo a este usuario
+                    if (currentUser) {
+                        const following = isFollowingThisUser(userData._id);
+                        setIsFollowing(following);
+                    }
+                }
+            } catch (err) {
+                console.error('Error al cargar perfil del usuario:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUserData();
+    }, [userId, navigate, currentUser]);
+
+    // Efecto: cargar los posts del usuario consultado
     useEffect(() => {
         if (!user) return;
 
         const fetchUserPosts = async () => {
-            setLoading(true);
             try {
-                const response = await axios.get(`${API_URL}/posts`);
-                // Filtrar solo posts del usuario actual y de menos de 6 meses
-                const userPosts = Array.isArray(response.data) 
+                const response = await axios.get(`http://localhost:8080/posts`);
+                // Filtrar solo posts del usuario consultado y de menos de 6 meses
+                const userPosts = Array.isArray(response.data)
                     ? response.data.filter((post) => post.idUser === user._id || post.idUser === user.idUser)
                     : [];
                 const recentUserPosts = filterRecentPosts(userPosts);
                 setPosts(recentUserPosts);
             } catch (err) {
                 console.error('Error al cargar posts:', err);
-            } finally {
-                setLoading(false);
             }
         };
 
         fetchUserPosts();
     }, [user]);
-
-    // Efecto: sincronizar el estado de seguimiento con el usuario objetivo
-    useEffect(() => {
-        if (!targetUserName || !user?._id || targetUserName.toLowerCase() === user.nickName?.toLowerCase()) {
-            setTargetUserInfo(null);
-            setIsFollowingTarget(false);
-            return;
-        }
-
-        const syncTargetUser = async () => {
-            try {
-                const users = await usuarioServices.getUsuarios();
-                const matchedUser = users.find((candidate: any) => candidate?.nickName?.toLowerCase() === targetUserName.toLowerCase()) as any;
-
-                if (!matchedUser) {
-                    setTargetUserInfo(null);
-                    setIsFollowingTarget(false);
-                    return;
-                }
-
-                setIsFollowingTarget(isFollowingThisUser(matchedUser._id || matchedUser.id));
-                setTargetUserInfo(matchedUser);
-            } catch (error) {
-                console.error('No se pudo cargar el usuario objetivo', error);
-                setTargetUserInfo(null);
-                setIsFollowingTarget(false);
-            }
-        };
-
-        syncTargetUser();
-    }, [targetUserName, user?._id, user?.following, user?.nickName]);
 
     useEffect(() => {
         if (!user) {
@@ -255,79 +249,6 @@ const Perfil = () => {
         loadCommentAuthors();
     }, [selectedPost]);
 
-    // Asegúrate de que el useEffect que carga los datos sea robusto
-    useEffect(() => {
-        const loadUserData = async () => {
-            const storedUser = localStorage.getItem('usuario');
-            if (storedUser) {
-                const parsedUser = JSON.parse(storedUser);
-                try {
-                    const updatedUser = await usuarioServices.getUserProfileById(parsedUser._id);
-                    setUser(normalizeUserData(updatedUser, parsedUser));
-                } catch (e) {
-                    setUser(normalizeUserData(parsedUser, parsedUser)); // Fallback al local
-                }
-            }
-        };
-        loadUserData();
-    }, []);
-
-    if (isChecking) {
-        return <Spinner animation="border" className="mt-5" />;
-    }
-
-    if (!user) {
-        return null;
-    }
-
-    // Separación de posts por tipo para la vista del perfil
-    const postsConImagen = posts.filter(p => p.images && p.images.length > 0);
-    const postsSinImagen = posts.filter(p => !p.images || p.images.length === 0);
-
-    // Handlers de acciones del perfil
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        const storedUserRaw = localStorage.getItem('usuario');
-        const storedUser = storedUserRaw ? JSON.parse(storedUserRaw) : null;
-        const currentUser = storedUser || user;
-        const userId = currentUser?._id || currentUser?.id;
-
-        if (!userId) {
-            console.error("Error crítico: El ID del usuario es undefined");
-            alert("Error: No se pudo identificar al usuario. Por favor, recarga la página.");
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('fotoPerfil', file);
-
-        try {
-            console.log("Subiendo foto de perfil para el usuario:", userId);
-            const response = await axios.put(`${API_URL}/usuario/${userId}`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-
-            const updatedUserData = response.data?.usuario || response.data;
-            const normalizedUser = { 
-                ...currentUser,
-                ...updatedUserData,
-                fotoPerfil: updatedUserData?.fotoPerfil || updatedUserData?.fotoPerfilUrl || updatedUserData?.profilePicture || currentUser?.fotoPerfil || currentUser?.fotoPerfilUrl || currentUser?.profilePicture || null,
-                _id: updatedUserData?._id || updatedUserData?.id || currentUser?._id || currentUser?.id,
-            };
-
-            localStorage.setItem('usuario', JSON.stringify(normalizedUser));
-            setUser(normalizedUser);
-            setProfileImageError(false);
-            console.log("Usuario actualizado en localStorage:", normalizedUser);
-            alert("Foto actualizada");
-        } catch (error) {
-            console.error("Error al subir la foto", error);
-            alert("No se pudo actualizar la foto. Intenta nuevamente.");
-        }
-    };
-
     const handleVerDetalle = (post: Post) => {
         setSelectedPost(post);
         setActiveIndex(0);
@@ -349,56 +270,44 @@ const Perfil = () => {
     };
 
     const isFollowingThisUser = (targetId: string) => {
-        return (user?.following || []).some((item: any) => {
+        return (currentUser?.following || []).some((item: any) => {
             if (typeof item === 'string') return item === targetId;
             return item?._id === targetId || item?.id === targetId;
         });
     };
 
     const handleFollowToggle = async () => {
-        if (!user?._id || !targetUserName.trim()) return;
-
-        const normalizedTarget = targetUserName.trim();
-        if (normalizedTarget.toLowerCase() === user.nickName?.toLowerCase()) {
-            alert('No puedes seguirte a vos mismo.');
-            return;
-        }
+        if (!currentUser?._id || !user?._id) return;
 
         setFollowLoading(true);
 
         try {
-            const users = await usuarioServices.getUsuarios();
-            const matchedUser = users.find((candidate: any) => candidate?.nickName?.toLowerCase() === normalizedTarget.toLowerCase()) as any;
-
-            if (!matchedUser) {
-                alert('No se encontró un usuario con ese nickname.');
-                setFollowLoading(false);
-                return;
-            }
-
-            const targetUserId = matchedUser._id || matchedUser.id;
-
-            if (isFollowingTarget) {
-                await usuarioServices.unfollowUser(user._id, targetUserId);
-                const updatedFollowing = (user.following || []).filter((item: any) => {
-                    if (typeof item === 'string') return item !== targetUserId;
-                    return item?._id !== targetUserId && item?.id !== targetUserId;
-                });
-
-                const updatedUser = { ...user, following: updatedFollowing };
-                setUser(updatedUser);
-                localStorage.setItem('usuario', JSON.stringify(updatedUser));
-                setIsFollowingTarget(false);
+            if (isFollowing) {
+                await usuarioServices.unfollowUser(currentUser._id, user._id);
+                setIsFollowing(false);
+                
+                // Actualizar currentUser en localStorage
+                const updatedCurrentUser = {
+                    ...currentUser,
+                    following: (currentUser.following || []).filter((item: any) => {
+                        if (typeof item === 'string') return item !== user._id;
+                        return item?._id !== user._id && item?.id !== user._id;
+                    })
+                };
+                localStorage.setItem('usuario', JSON.stringify(updatedCurrentUser));
+                setCurrentUser(updatedCurrentUser);
             } else {
-                await usuarioServices.followUser(user._id, targetUserId);
-                const updatedFollowing = [...(user.following || []), targetUserId];
-                const updatedUser = { ...user, following: updatedFollowing };
-                setUser(updatedUser);
-                localStorage.setItem('usuario', JSON.stringify(updatedUser));
-                setIsFollowingTarget(true);
+                await usuarioServices.followUser(currentUser._id, user._id);
+                setIsFollowing(true);
+                
+                // Actualizar currentUser en localStorage
+                const updatedCurrentUser = {
+                    ...currentUser,
+                    following: [...(currentUser.following || []), user._id]
+                };
+                localStorage.setItem('usuario', JSON.stringify(updatedCurrentUser));
+                setCurrentUser(updatedCurrentUser);
             }
-
-            setTargetUserInfo(matchedUser);
         } catch (error) {
             console.error('Error al seguir/dejar de seguir', error);
             alert('No se pudo completar la acción.');
@@ -437,26 +346,35 @@ const Perfil = () => {
 
         return [];
     };
-    
-    // Render del perfil
+
+    if (loading) {
+        return <Spinner animation="border" className="mt-5" />;
+    }
+
+    if (!user) {
+        return <Container><p>Usuario no encontrado</p></Container>;
+    }
+
+    // Separación de posts por tipo para la vista del perfil
+    const postsConImagen = posts.filter(p => p.images && p.images.length > 0);
+    const postsSinImagen = posts.filter(p => !p.images || p.images.length === 0);
+
     return (
         <Container className="mt-5 text-center">
             <ProfileHeader
                 user={user}
-                targetUserId={targetUserName}
-                targetUserInfo={targetUserInfo}
+                targetUserId=""
+                targetUserInfo={null}
                 followLoading={followLoading}
-                isFollowingTarget={isFollowingTarget}
-                onFileChange={handleFileChange}
-                onFollowToggle={handleFollowToggle}
-                onTargetUserIdChange={(value) => {
-                    setTargetUserName(value);
-                    setTargetUserInfo(null);
-                }}
+                isFollowingTarget={isFollowing}
+                onFileChange={() => {}}
+                onFollowToggle={isOwnProfile ? () => {} : handleFollowToggle}
+                onTargetUserIdChange={() => {}}
                 getRelationshipCount={getRelationshipCount}
                 getProfileImageSrc={getProfileImageSrc}
                 onProfileImageError={() => setProfileImageError(true)}
                 onProfileImageLoad={() => setProfileImageError(false)}
+                isOtherUserProfile={!isOwnProfile}
             />
 
             {/* Pestañas de Posts */}
@@ -490,4 +408,4 @@ const Perfil = () => {
     );
 };
 
-export default Perfil;
+export default PerfilUsuario;

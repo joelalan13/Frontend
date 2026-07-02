@@ -1,6 +1,6 @@
 import noFindError from "./noFindError"
-import { API_URL } from "../config/api"
 import type { Tag, TagPaginatedResponse } from "../types"
+import { API_URL } from "../constants"
 
 const getAllTags = async (page: number = 1, limit: number = 20, nombre?: string): Promise<TagPaginatedResponse> => {   
 
@@ -48,7 +48,7 @@ const addTagToPost = async (idPost: string, tagName: string): Promise<{ message:
 
 const removeTagFromPost = async (idPost: string, tagName: string): Promise<{ message: string }> => {
     
-    const respuesta = await fetch(`${API_URL}/post/${idPost}/tags/${encodeURIComponent(tagName)}`, {
+    const respuesta = await fetch(`${API_URL}/post/${idPost}/tags/${tagName}`, {
         method: "DELETE",
     })
     

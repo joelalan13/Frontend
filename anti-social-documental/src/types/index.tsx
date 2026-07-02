@@ -1,83 +1,80 @@
 export interface User {
-  idUser: string;      // ObjectId de MongoDB
-  nickName: string;
-  nombre: string;
-  apellido: string;
-  fotoPerfil?: string | null;
-  followers: Array<string | UserReference>;
-  following: Array<string | UserReference>;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface UserReference {
-  idUser: string;
-  nickName: string;
+  _id?: string
+  idUser?: string
+  nickName: string
+  nombre: string
+  apellido: string
+  fotoPerfil?: string
+  followers?: any[]
+  following?: any[]
+  createdAt?: Date
+  updatedAt?: Date
 }
 
 export interface PostImage {
-  idPostImage: string;
-  url: string;
-  createdAt?: string;
-  updatedAt?: string;
+  _id?: string
+  idPostImage?: string
+  url: string
+  createdAt?: Date
+  updatedAt?: Date
 }
 
 export interface Post {
-  idPost: string;
-  idUser: string;
-  descripcion: string;
-  images: PostImage[];
-  tags: string[];
-  Comments?: Comment[];
-  createdAt: string;
-  updatedAt: string;
+  _id?: string
+  idPost?: string
+  idUser: string
+  descripcion: string
+  images?: PostImage[]
+  tags?: string[]
+  Comments?: Comment[]
+  likes?: number
+  createdAt?: Date
+  updatedAt?: Date
 }
 
 export interface Comment {
-  idComment: string;
-  idPost: string;
-  idUser: string;
-  contenido: string;
-  visible?: boolean;
-  createdAt: string;
-  updatedAt: string;
+  _id?: string
+  idComment?: string
+  idPost: string
+  idUser: string
+  contenido: string
+  visible?: boolean
+  createdAt?: Date
+  updatedAt?: Date
 }
 
 export interface Tag {
-  nombre: string;
+  _id?: string
+  nombre: string
+  idTag?: number
 }
 
 export interface RegisterPayload {
-  nickName: string;
-  nombre: string;
-  apellido: string;
+  nickName: string
+  nombre: string
+  apellido: string
 }
 
 export interface CreatePostPayload {
-  idUser: string;
-  descripcion: string;
+  idUser: string
+  descripcion: string
 }
 
 export interface CreateCommentPayload {
-  idUser: string;
-  contenido: string;
+  idUser: string
+  contenido: string
 }
 
 export interface CreatePostImagePayload {
-  urlImages: string[];
-}
-
-export interface ApiMessage {
-  message: string;
+  urlImages: string[]
 }
 
 export interface TagPaginatedResponse {
-  data: Tag[];
+  data: Tag[]
   pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-  };
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
 }
-

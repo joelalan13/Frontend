@@ -1,17 +1,21 @@
 import { useState } from "react";
 import { Send } from "lucide-react";
+import commentServices from "../services/commentServices";
+import type { CreateCommentPayload } from "../types";
 // @ts-ignore: allow importing CSS without type declarations
 import "../styles/commentForm.css";
 
 type Props = {
-  onSubmit?: (contenido: string) => void;
+  idPost: string;
+  onCommentAdded?: () => void;
 };
 
-const CommentForm = ({ onSubmit }: Props) => {
+const CommentForm = ({ idPost, onCommentAdded }: Props) => {
   const [contenido, setContenido] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!contenido.trim()) {
@@ -20,48 +24,56 @@ const CommentForm = ({ onSubmit }: Props) => {
     }
 
     setError("");
+    setLoading(true);
 
-    if (onSubmit) {
-      onSubmit(contenido);
+    try {
+      const usuario = JSON.parse(localStorage.getItem("usuario") || "{}");
+
+      const payload: CreateCommentPayload = {
+        idUser: usuario._id,
+        contenido,
+      };
+
+      await commentServices.postCommentario(payload, idPost);
+
+      setContenido("");
+      alert("¡Comentario agregado con éxito!");
+
+      if (onCommentAdded) {
+        onCommentAdded();
+      }
+    } catch (err) {
+      console.error("Error al agregar comentario:", err);
+      setError("Error al agregar el comentario");
+    } finally {
+      setLoading(false);
     }
-
-    console.log(contenido);
-
-    setContenido("");
   };
 
   return (
     <section className="comment-form">
-
-      <h3 className="comment-form__title">
-        AGREGAR COMENTARIO
-      </h3>
+      <h3 className="comment-form__title">AGREGAR COMENTARIO</h3>
 
       <form onSubmit={handleSubmit}>
-
         <textarea
           className="comment-form__textarea"
           placeholder="Escribí tu comentario..."
           value={contenido}
           onChange={(e) => setContenido(e.target.value)}
+          disabled={loading}
         />
 
-        {error && (
-          <p className="comment-form__error">
-            {error}
-          </p>
-        )}
+        {error && <p className="comment-form__error">{error}</p>}
 
         <button
           className="comment-form__button"
           type="submit"
+          disabled={loading}
         >
           <Send size={16} />
-          ENVIAR COMENTARIO
+          {loading ? "ENVIANDO..." : "ENVIAR COMENTARIO"}
         </button>
-
       </form>
-
     </section>
   );
 };

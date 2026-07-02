@@ -1,0 +1,382 @@
+/* ProfilePostDetailModal Styles */
+
+.profile-post-modal {
+  --modal-bg: #0c110d;
+  --modal-border: #243224;
+  --modal-text: #EDFAEE;
+  --modal-text-secondary: #7d8d81;
+  --modal-accent: #00D166;
+  --modal-accent-secondary: #49C6D9;
+}
+
+/* Modal Container */
+.profile-post-modal .modal-content {
+  background-color: var(--modal-bg);
+  border: 1px solid var(--modal-border);
+  border-radius: 8px;
+  color: var(--modal-text);
+}
+
+.profile-post-modal .modal-header {
+  background-color: #080C09;
+  border-bottom: 1px solid var(--modal-border);
+  padding: 1.5rem;
+}
+
+.profile-post-modal .modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--modal-accent);
+  letter-spacing: 0.5px;
+}
+
+.profile-post-modal .btn-close {
+  filter: invert(1) brightness(1.2);
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.profile-post-modal .btn-close:hover {
+  opacity: 1;
+}
+
+/* Modal Body */
+.profile-post-modal .modal-body {
+  background-color: var(--modal-bg);
+  padding: 2rem;
+  overflow: hidden;
+}
+
+.profile-post-modal .row {
+  display: flex;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+/* Columnas */
+.profile-post-modal .col-images {
+  flex: 0 0 40%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.profile-post-modal .col-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  min-width: 0;
+}
+
+.profile-post-modal .col-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.profile-post-modal .col-content::-webkit-scrollbar-track {
+  background: #111812;
+  border-radius: 3px;
+}
+
+.profile-post-modal .col-content::-webkit-scrollbar-thumb {
+  background: var(--modal-accent);
+  border-radius: 3px;
+}
+
+.profile-post-modal .col-content::-webkit-scrollbar-thumb:hover {
+  background: #00c75a;
+}
+
+/* Imágenes - Carrusel */
+.profile-post-modal .carousel {
+  background-color: #000;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  flex: 1;
+}
+
+.profile-post-modal .carousel-item img {
+  border-radius: 6px;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-post-modal .carousel-control-prev,
+.profile-post-modal .carousel-control-next {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  width: 40px;
+  height: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0 8px;
+  transition: background 0.2s;
+}
+
+.profile-post-modal .carousel-control-prev:hover,
+.profile-post-modal .carousel-control-next:hover {
+  background: rgba(0, 209, 102, 0.4);
+}
+
+.profile-post-modal .carousel-control-prev-icon,
+.profile-post-modal .carousel-control-next-icon {
+  filter: invert(1) brightness(1.1);
+}
+
+.profile-post-modal .carousel-indicators {
+  bottom: -40px;
+  gap: 8px;
+  margin-top: 1rem;
+}
+
+.profile-post-modal .carousel-indicators [data-bs-target] {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--modal-text-secondary);
+  border: none;
+  opacity: 0.5;
+  transition: all 0.2s;
+}
+
+.profile-post-modal .carousel-indicators .active {
+  background-color: var(--modal-accent);
+  opacity: 1;
+  width: 24px;
+  border-radius: 4px;
+}
+
+/* Contenido - Descripción */
+.profile-post-modal .post-description {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--modal-text);
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: #111812;
+  border-left: 3px solid var(--modal-accent);
+  border-radius: 4px;
+}
+
+/* Tags */
+.profile-post-modal .post-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.profile-post-modal .post-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  background-color: rgba(73, 198, 217, 0.1);
+  color: var(--modal-accent-secondary);
+  border: 1px solid var(--modal-accent-secondary);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.profile-post-modal .post-tag:hover {
+  background-color: rgba(73, 198, 217, 0.2);
+  color: #6ed8e8;
+  border-color: #6ed8e8;
+}
+
+/* Divisor */
+.profile-post-modal .modal-divider {
+  height: 1px;
+  background-color: var(--modal-border);
+  margin: 1.5rem 0;
+}
+
+/* Comentarios - Sección */
+.profile-post-modal .comments-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+  overflow: hidden;
+}
+
+.profile-post-modal .comments-header {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--modal-text);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.profile-post-modal .comments-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background-color: var(--modal-accent);
+  color: #000;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.profile-post-modal .comments-container {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0.5rem;
+  border: 1px solid var(--modal-border);
+  border-radius: 6px;
+  background-color: #080C09;
+}
+
+.profile-post-modal .comments-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.profile-post-modal .comments-container::-webkit-scrollbar-track {
+  background: #111812;
+  border-radius: 3px;
+}
+
+.profile-post-modal .comments-container::-webkit-scrollbar-thumb {
+  background: var(--modal-accent);
+  border-radius: 3px;
+}
+
+.profile-post-modal .comments-container::-webkit-scrollbar-thumb:hover {
+  background: #00c75a;
+}
+
+/* Comentario Individual */
+.profile-post-modal .comment-item {
+  background-color: #111812;
+  border: 1px solid var(--modal-border);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.profile-post-modal .comment-item:hover {
+  border-color: var(--modal-accent-secondary);
+  background-color: #151a16;
+}
+
+.profile-post-modal .comment-author {
+  font-weight: 700;
+  color: var(--modal-accent);
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+}
+
+.profile-post-modal .comment-content {
+  font-size: 0.9rem;
+  color: var(--modal-text);
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.profile-post-modal .comment-empty {
+  text-align: center;
+  color: var(--modal-text-secondary);
+  font-style: italic;
+  padding: 2rem 1rem;
+}
+
+.profile-post-modal .no-images-placeholder {
+  background-color: #111812;
+  border: 1px dashed var(--modal-border);
+  border-radius: 6px;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--modal-text-secondary);
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .profile-post-modal .modal-body {
+    max-height: 70vh;
+  }
+
+  .profile-post-modal .col-images {
+    flex: 0 0 40%;
+  }
+
+  .profile-post-modal .col-content {
+    flex: 0 0 60%;
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-post-modal .modal-dialog {
+    margin: 0;
+  }
+
+  .profile-post-modal .modal-body {
+    padding: 1rem;
+    max-height: none;
+    overflow: auto;
+  }
+
+  .profile-post-modal .row {
+    flex-direction: column;
+    gap: 1rem;
+    height: auto;
+  }
+
+  .profile-post-modal .col-images,
+  .profile-post-modal .col-content {
+    flex: 1 !important;
+    overflow: visible !important;
+  }
+
+  .profile-post-modal .col-content {
+    padding-right: 0;
+  }
+
+  .profile-post-modal .carousel-item img {
+    height: 300px;
+  }
+
+  .profile-post-modal .comments-container {
+    max-height: 250px;
+  }
+}
+
+@media (max-width: 576px) {
+  .profile-post-modal .modal-header {
+    padding: 1rem;
+  }
+
+  .profile-post-modal .modal-body {
+    padding: 0.75rem;
+  }
+
+  .profile-post-modal .carousel-item img {
+    height: 250px;
+  }
+
+  .profile-post-modal .post-description {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .profile-post-modal .post-tags {
+    gap: 0.5rem;
+  }
+
+  .profile-post-modal .post-tag {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+  }
+}
