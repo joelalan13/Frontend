@@ -7,6 +7,7 @@ import Perfil from "./pages/Perfil"
 import Login from "./pages/Login"
 import NewPost from "./pages/NewPost"
 import PostDetails from "./pages/PostDetails"
+import Error404 from "./pages/Error404"
 
 function App() {
   return(
@@ -18,6 +19,7 @@ function App() {
             <Route path="/perfil" element={<Perfil/>} />
             <Route path="/newPost" element={<NewPost/>}/>
             <Route path="/postDetails/:idPost" element={<PostDetails/>}/>
+             <Route path="/notFund" element={<Error404/>}/>
         </Routes>
     </div>
   )
