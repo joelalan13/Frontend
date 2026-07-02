@@ -24,7 +24,14 @@ const RegisterForm = () => {
       return;
     }
 
-    setLoading(true);
+  try {
+    // POST hacia tu backend (según router.user.js)
+    const response = await axios.post("http://localhost:8080/usuario", {
+      nickName: nickName,
+      nombre: nombre, 
+      apellido: apellido,
+      fotoPerfil: "https://i.ibb.co/0j1Z8kM/default-profile.png", // Valor por defecto
+    });
 
     try {
       const nuevoUsuario = await usuarioServices.postUsuario({
@@ -111,7 +118,7 @@ const RegisterForm = () => {
                 <Lock size={17} />
                 <input
                   type="password"
-                  placeholder="Mínimo 6 caracteres"
+                  placeholder="123456"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
